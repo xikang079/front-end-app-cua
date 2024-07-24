@@ -4,7 +4,7 @@ import '../models/trader_model.dart';
 import 'local_storage_service.dart';
 
 class ApiServiceTrader {
-  static const String baseUrl = 'http://192.168.1.2:3000/traders';
+  static const String baseUrl = 'https://back-end-app-cua.onrender.com/traders';
   final Dio _dio;
 
   ApiServiceTrader()

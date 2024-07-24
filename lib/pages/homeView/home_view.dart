@@ -1,13 +1,13 @@
+import 'package:blue_thermal_printer/blue_thermal_printer.dart' as bt;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:project_crab_front_end/controllers/daily_summary_controller.dart';
-
-import '../../apps/config/app_colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../crabPriceView/price_management_view.dart';
 import '../dailySumView/daily_summary_view.dart';
 import '../invoiceView/invoice_creation_view.dart';
 import '../settingView/settings_view.dart';
 import '../traderView/trader_management_view.dart';
+import '../../apps/config/app_colors.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -17,27 +17,64 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  int _page = 0; // Default to the first page (Price Management)
-  final DailySummaryController dailySummaryController =
-      Get.find<DailySummaryController>();
-
+  int _page = 0;
   final List<Widget> _pages = [
-    const PriceManagementView(),
+    const CrabTypeManagementView(),
     const TraderManagementView(),
     const InvoiceCreationView(),
     DailySummaryView(),
     SettingsView(),
   ];
 
+  final bt.BlueThermalPrinter bluetooth = bt.BlueThermalPrinter.instance;
+  bool _isConnected = false;
+
   @override
   void initState() {
     super.initState();
-    // Fetch the latest data when returning to HomeView
-    ever<int>(dailySummaryController.dailySummaryIndex, (index) {
-      if (_page == 3) {
-        dailySummaryController.fetchAllDailySummariesByDepot();
+    _autoConnectToPrinter();
+  }
+
+  void _autoConnectToPrinter() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? deviceAddress = prefs.getString('device_address');
+
+    if (deviceAddress != null) {
+      List<bt.BluetoothDevice> devices = await bluetooth.getBondedDevices();
+      bt.BluetoothDevice? device;
+      try {
+        device = devices.firstWhere(
+          (d) => d.address == deviceAddress,
+        );
+      } catch (e) {
+        device = null;
       }
-    });
+
+      if (device != null) {
+        try {
+          await bluetooth.connect(device);
+          setState(() {
+            _isConnected = true;
+          });
+          Get.snackbar(
+            'Thành công',
+            'Tự động kết nối thành công với máy in',
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+          );
+        } catch (e) {
+          setState(() {
+            _isConnected = false;
+          });
+          Get.snackbar(
+            'Lỗi',
+            'Không thể kết nối máy in tự động: $e',
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -49,13 +86,12 @@ class _HomeViewState extends State<HomeView> {
         onTap: (index) {
           setState(() {
             _page = index;
-            // Không cần sử dụng Get.toNamed, chỉ cần cập nhật trang hiện tại
           });
         },
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.attach_money),
-            label: 'Giá cua',
+            label: 'Loại cua',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.people),
@@ -82,62 +118,6 @@ class _HomeViewState extends State<HomeView> {
             const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         unselectedLabelStyle: const TextStyle(fontSize: 12),
         type: BottomNavigationBarType.fixed,
-      ),
-    );
-  }
-}
-
-// home_view.dart
-class AnimatedFloatingActionButton extends StatefulWidget {
-  final VoidCallback onPressed;
-  final String heroTag;
-
-  const AnimatedFloatingActionButton({
-    super.key,
-    required this.onPressed,
-    required this.heroTag,
-  });
-
-  @override
-  _AnimatedFloatingActionButtonState createState() =>
-      _AnimatedFloatingActionButtonState();
-}
-
-class _AnimatedFloatingActionButtonState
-    extends State<AnimatedFloatingActionButton>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-    _animation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    );
-    _controller.forward();
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: _animation,
-      child: FloatingActionButton(
-        heroTag: widget.heroTag, // Unique hero tag
-        backgroundColor: AppColors.primaryColor,
-        onPressed: widget.onPressed,
-        child: const Icon(Icons.add, color: AppColors.buttonTextColor),
       ),
     );
   }

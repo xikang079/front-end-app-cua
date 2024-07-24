@@ -1,10 +1,12 @@
-// views/settings_view.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../apps/config/app_colors.dart';
 import '../../controllers/auth_controller.dart';
 import '../../widgets/confirm_dialog.dart';
+import '../connectPrinterView/connect_printer_view.dart';
 
 class SettingsView extends StatelessWidget {
   SettingsView({super.key});
@@ -45,6 +47,25 @@ class SettingsView extends StatelessWidget {
                   style: TextStyle(color: AppColors.textColor)),
               subtitle: Text(authController.user.value?.phone ?? 'N/A',
                   style: const TextStyle(color: AppColors.textColor)),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              margin: const EdgeInsets.only(right: 10.0),
+              child: TextButton.icon(
+                onPressed: () => Get.to(() => const PrinterConnectionView()),
+                icon: const Icon(Icons.print, color: Colors.green),
+                label: const Text('Cài máy in',
+                    style: TextStyle(color: Colors.green, fontSize: 16)),
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 10.0, horizontal: 16.0),
+                  shape: RoundedRectangleBorder(
+                    side: const BorderSide(color: Colors.grey, width: 3),
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+              ),
             ),
             const SizedBox(height: 20),
             ElevatedButton(

@@ -4,7 +4,8 @@ import '../models/crabtype_model.dart';
 import 'local_storage_service.dart';
 
 class ApiServiceCrabType {
-  static const String baseUrl = 'http://192.168.1.2:3000/crabTypes';
+  static const String baseUrl =
+      'https://back-end-app-cua.onrender.com/crabTypes';
   final Dio _dio;
 
   ApiServiceCrabType()

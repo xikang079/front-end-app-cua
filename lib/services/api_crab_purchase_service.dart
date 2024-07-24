@@ -4,7 +4,8 @@ import '../models/crabpurchase_model.dart';
 import 'local_storage_service.dart';
 
 class ApiServiceCrabPurchase {
-  static const String baseUrl = 'http://192.168.1.2:3000/crabPurchases';
+  static const String baseUrl =
+      'https://back-end-app-cua.onrender.com/crabPurchases';
   final Dio _dio;
 
   ApiServiceCrabPurchase()
@@ -55,6 +56,31 @@ class ApiServiceCrabPurchase {
       }
     } catch (e) {
       // print('Failed to get crab purchases: $e');
+      return [];
+    }
+  }
+
+  Future<List<CrabPurchase>> getCrabPurchasesByDateRange(
+      String depotId, DateTime startDate, DateTime endDate) async {
+    try {
+      String formattedStartDate = startDate.toIso8601String();
+      String formattedEndDate = endDate.toIso8601String();
+      Response response = await _dio.get(
+        '/depot/$depotId/date-range?startDate=$formattedStartDate&endDate=$formattedEndDate',
+      );
+      if (response.statusCode == 200) {
+        var data = response.data['message']['metadata'];
+        print('Fetched data from API: $data'); // Add this line for debugging
+        if (data != null && data is List) {
+          return data.map((e) => CrabPurchase.fromJson(e)).toList();
+        } else {
+          return [];
+        }
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print('Failed to fetch data: $e'); // Add this line for debugging
       return [];
     }
   }

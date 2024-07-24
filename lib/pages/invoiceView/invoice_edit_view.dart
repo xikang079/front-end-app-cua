@@ -1,14 +1,13 @@
-import 'package:dropdown_search/dropdown_search.dart';
+// import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:project_crab_front_end/widgets/touch_off_keyboard.dart';
-
 import '../../apps/config/app_colors.dart';
 import '../../apps/config/format_vnd.dart';
 import '../../controllers/crab_purchase_controller.dart';
 import '../../controllers/crabtype_controller.dart';
 import '../../models/crabpurchase_model.dart';
 import '../../models/crabtype_model.dart';
+import '../../widgets/touch_off_keyboard.dart';
 
 class EditInvoicePage extends StatefulWidget {
   final CrabPurchase crabPurchase;
@@ -23,39 +22,39 @@ class _EditInvoicePageState extends State<EditInvoicePage> {
   final CrabPurchaseController crabPurchaseController = Get.find();
   final CrabTypeController crabTypeController = Get.find();
 
-  final TextEditingController weightController = TextEditingController();
   final List<CrabDetail> crabDetails = [];
-  CrabType? selectedCrabType;
+  final Map<String, TextEditingController> controllers = {};
 
   @override
   void initState() {
     super.initState();
+    crabTypeController.loadSelectedCrabTypesForToday();
     crabDetails.addAll(widget.crabPurchase.crabs);
-  }
 
-  void _onAddCrabType() {
-    if (selectedCrabType != null && weightController.text.isNotEmpty) {
-      final double weight =
-          double.parse(weightController.text.replaceAll(',', '.'));
-      final double totalCost = weight * selectedCrabType!.pricePerKg;
-
-      setState(() {
+    for (var crabType in crabTypeController.selectedCrabTypes) {
+      if (crabDetails.indexWhere((crab) => crab.crabType.id == crabType.id) ==
+          -1) {
         crabDetails.add(CrabDetail(
-          crabType: selectedCrabType!,
-          weight: weight,
-          pricePerKg: selectedCrabType!.pricePerKg,
-          totalCost: totalCost,
+          crabType: crabType,
+          weight: 0,
+          pricePerKg: crabType.pricePerKg,
+          totalCost: 0,
         ));
-        selectedCrabType = null;
-      });
+      }
+    }
 
-      weightController.clear();
-    } else {
-      Get.snackbar('Lỗi', 'Vui lòng chọn loại cua và nhập trọng lượng');
+    for (var crabDetail in crabDetails) {
+      controllers[crabDetail.crabType.id] = TextEditingController(
+        text: crabDetail.weight > 0
+            ? crabDetail.weight.toString().replaceAll('.', ',')
+            : '',
+      );
     }
   }
 
   void _onSubmitEdit() async {
+    crabDetails.removeWhere((detail) => detail.weight == 0);
+
     if (crabDetails.isNotEmpty) {
       final double totalCost =
           crabDetails.fold(0, (sum, item) => sum + item.totalCost);
@@ -97,6 +96,18 @@ class _EditInvoicePageState extends State<EditInvoicePage> {
     }
   }
 
+  String formatWeightInput(String input) {
+    return input.replaceAll(',', '.');
+  }
+
+  @override
+  void dispose() {
+    controllers.forEach((key, controller) {
+      controller.dispose();
+    });
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return TouchOutsideToDismissKeyboard(
@@ -110,119 +121,157 @@ class _EditInvoicePageState extends State<EditInvoicePage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              Obx(() {
-                if (crabTypeController.isLoading.value) {
-                  return const CircularProgressIndicator();
-                }
-                return SizedBox(
-                  width: double.infinity,
-                  child: DropdownSearch<CrabType>(
-                    items: crabTypeController.crabTypes,
-                    itemAsString: (CrabType crabType) => crabType.name,
-                    selectedItem: selectedCrabType,
-                    dropdownBuilder: _customDropDownExampleCrabType,
-                    popupProps: PopupProps.menu(
-                      showSearchBox: true,
-                      itemBuilder: _customPopupItemBuilderExampleCrabType,
-                    ),
-                    onChanged: (CrabType? value) {
-                      setState(() {
-                        selectedCrabType = value;
-                      });
-                    },
-                    dropdownDecoratorProps: const DropDownDecoratorProps(
-                      dropdownSearchDecoration: InputDecoration(
-                        labelText: 'Chọn loại cua',
-                        contentPadding: EdgeInsets.fromLTRB(12, 12, 0, 0),
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
-                );
-              }),
-              const SizedBox(height: 16.0),
-              TextField(
-                controller: weightController,
-                decoration: const InputDecoration(
-                  labelText: 'Trọng lượng (kg)',
-                  labelStyle:
-                      TextStyle(fontSize: 18, color: AppColors.textColor),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.primaryColor),
-                  ),
-                ),
-                keyboardType: TextInputType.number,
-                style: const TextStyle(fontSize: 18),
-              ),
-              const SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: _onAddCrabType,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.buttonColor,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  textStyle: const TextStyle(fontSize: 18),
-                ),
-                child: const Text(
-                  'Thêm loại cua',
-                  style: TextStyle(
-                    color: Colors.white,
-                  ),
+              Container(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Thương nhân: ${widget.crabPurchase.trader.name}',
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
               const SizedBox(height: 16.0),
               Expanded(
-                child: ListView.builder(
-                  itemCount: crabDetails.length,
-                  itemBuilder: (context, index) {
-                    final crabDetail = crabDetails[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: ListTile(
-                        title: Text(crabDetail.crabType.name,
-                            style: const TextStyle(
-                                fontSize: 16, color: AppColors.textColor)),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                child: SingleChildScrollView(
+                  child: Table(
+                    border: TableBorder.all(color: Colors.black54, width: 1),
+                    columnWidths: const {
+                      0: FlexColumnWidth(2),
+                      1: FlexColumnWidth(2),
+                      2: FlexColumnWidth(2),
+                      3: FlexColumnWidth(2),
+                    },
+                    children: [
+                      TableRow(
+                        decoration: BoxDecoration(color: Colors.grey[300]),
+                        children: const [
+                          TableCell(
+                            child: Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Center(
+                                child: Text(
+                                  'Tên loại cua',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                          ),
+                          TableCell(
+                            child: Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Center(
+                                child: Text(
+                                  'Số kí (kg)',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                          ),
+                          TableCell(
+                            child: Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Center(
+                                child: Text(
+                                  'Giá (VND/kg)',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                          ),
+                          TableCell(
+                            child: Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Center(
+                                child: Text(
+                                  'Tổng tiền',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      ...crabDetails.map((crabDetail) {
+                        return TableRow(
                           children: [
-                            Text(
-                              'Số kí: ${crabDetail.weight} kg',
-                              style: const TextStyle(
-                                  fontSize: 14, color: AppColors.textColor),
+                            TableCell(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Center(
+                                  child: Text(
+                                    crabDetail.crabType.name,
+                                    style: const TextStyle(fontSize: 20),
+                                  ),
+                                ),
+                              ),
                             ),
-                            Text(
-                              'Giá: ${formatCurrency(crabDetail.pricePerKg)}',
-                              style: const TextStyle(
-                                  fontSize: 14, color: AppColors.textColor),
+                            TableCell(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Center(
+                                  child: TextField(
+                                    decoration: const InputDecoration(
+                                      labelStyle: TextStyle(fontSize: 14),
+                                    ),
+                                    keyboardType: TextInputType.number,
+                                    controller:
+                                        controllers[crabDetail.crabType.id],
+                                    onChanged: (value) {
+                                      final double weight = double.tryParse(
+                                              formatWeightInput(value)) ??
+                                          0;
+                                      setState(() {
+                                        crabDetail.weight = weight;
+                                        crabDetail.totalCost =
+                                            weight * crabDetail.pricePerKg;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
                             ),
-                            Text(
-                              'Tổng: ${formatCurrency(crabDetail.totalCost)}',
-                              style: const TextStyle(
-                                  fontSize: 14, color: AppColors.textColor),
+                            TableCell(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Center(
+                                  child: Text(
+                                    formatNumberWithoutSymbol(
+                                        crabDetail.pricePerKg),
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            TableCell(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Center(
+                                  child: Text(
+                                    formatNumberWithoutSymbol(
+                                        crabDetail.totalCost),
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete,
-                              color: AppColors.errorColor),
-                          onPressed: () {
-                            setState(() {
-                              crabDetails.removeAt(index);
-                            });
-                          },
-                        ),
-                      ),
-                    );
-                  },
+                        );
+                      }),
+                    ],
+                  ),
                 ),
               ),
               Container(
                 decoration: const BoxDecoration(
                   border: Border(
-                    top: BorderSide(
-                      width: 1,
-                      color: Colors.black,
-                    ),
+                    top: BorderSide(width: 1, color: Colors.black),
                   ),
                 ),
                 child: Padding(
@@ -239,16 +288,12 @@ class _EditInvoicePageState extends State<EditInvoicePage> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryColor,
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 16,
-                          ),
+                              horizontal: 18, vertical: 16),
                           textStyle: const TextStyle(fontSize: 18),
                         ),
                         child: const Text(
                           'Lưu',
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
+                          style: TextStyle(color: Colors.white),
                         ),
                       ),
                     ],

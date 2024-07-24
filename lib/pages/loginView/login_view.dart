@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project_crab_front_end/widgets/touch_off_keyboard.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 import '../../apps/config/app_colors.dart';
 import '../../controllers/auth_controller.dart';
@@ -17,6 +18,7 @@ class LoginView extends StatelessWidget {
 
   void _handleLogin() {
     if (!authController.isLoggedIn.value) {
+      EasyLoading.show(status: 'Đang đăng nhập...');
       authController.login(usernameController.text, passwordController.text);
     }
   }

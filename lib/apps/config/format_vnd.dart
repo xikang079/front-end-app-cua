@@ -12,3 +12,23 @@ String formatInputCurrency(String value) {
   final formatter = NumberFormat('#,###');
   return formatter.format(double.parse(value));
 }
+
+String formatNumberWithoutSymbol(double value) {
+  final formatter = NumberFormat('#,###', 'vi_VN');
+  return formatter.format(value);
+}
+
+String formatWeightInput(String input) {
+  return input.replaceAll(',', '.');
+}
+
+String removeDiacritics(String str) {
+  var withDia =
+      'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ';
+  var withoutDia =
+      'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyd';
+  for (int i = 0; i < withDia.length; i++) {
+    str = str.replaceAll(withDia[i], withoutDia[i]);
+  }
+  return str;
+}

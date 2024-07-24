@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:project_crab_front_end/pages/connectPrinterView/connect_printer_view.dart';
 
 import '../bindings/auth_binding.dart';
 import '../bindings/crab_purchase_binding.dart';
@@ -59,10 +60,12 @@ class AppRoutes {
     ),
     GetPage(
       name: '/daily-summary-detail',
-      page: () => DailySummaryDetailView(
-        dailySummary: Get.arguments,
-      ),
+      page: () => DailySummaryDetailView(dailySummary: Get.arguments),
       binding: DailySummaryBinding(),
+    ),
+    GetPage(
+      name: '/printer-view',
+      page: () => const PrinterConnectionView(),
     ),
   ];
 }

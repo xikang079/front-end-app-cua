@@ -1,6 +1,6 @@
-// views/root_view.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 import '../../controllers/auth_controller.dart';
 
@@ -14,8 +14,9 @@ class RootView extends StatelessWidget {
     return Scaffold(
       body: Obx(() {
         if (authController.isCheckingLoginStatus.value) {
-          return const Center(child: CircularProgressIndicator());
+          EasyLoading.show(status: 'Đang kiểm tra trạng thái đăng nhập...');
         } else {
+          EasyLoading.dismiss();
           if (authController.isLoggedIn.value) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               Get.offAllNamed('/home');
@@ -25,8 +26,8 @@ class RootView extends StatelessWidget {
               Get.offAllNamed('/login');
             });
           }
-          return const Center(child: CircularProgressIndicator());
         }
+        return Container();
       }),
     );
   }

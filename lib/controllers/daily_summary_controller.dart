@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../apps/config/app_colors.dart';
 import '../models/dailysummary_model.dart';
 import '../services/api_service_daily_summary.dart';
@@ -18,15 +18,19 @@ class DailySummaryController extends GetxController {
   var dailySummaries = <DailySummary>[].obs;
   var isLoading = false.obs;
   var dailySummaryIndex = 0.obs;
+  var selectedMonth = DateTime.now().month.obs;
+  var selectedYear = DateTime.now().year.obs;
+  var errorMessage = ''.obs;
 
   @override
   void onInit() {
     super.onInit();
-    fetchDailySummaryByDepotToday();
+    fetchDailySummariesByDepotAndMonth(selectedMonth.value, selectedYear.value);
   }
 
   Future<void> fetchDailySummaryByDepotToday() async {
     isLoading.value = true;
+    EasyLoading.show(status: 'Loading...');
     try {
       String? depotId = await LocalStorageService.getUserId();
       if (depotId != null) {
@@ -35,51 +39,76 @@ class DailySummaryController extends GetxController {
         if (fetchedDailySummary != null) {
           dailySummary.value = fetchedDailySummary;
           dailySummaryIndex.value++;
-        } else {
-          print('Fetched daily summary is null');
         }
       }
     } catch (e) {
-      print('Failed to fetch daily summary: $e');
+      errorMessage.value = 'Failed to fetch daily summary: $e';
     } finally {
       isLoading.value = false;
+      EasyLoading.dismiss();
     }
   }
 
   Future<void> fetchAllDailySummariesByDepot() async {
     isLoading.value = true;
+    EasyLoading.show(status: 'Loading...');
+    dailySummaries.clear(); // Clear old data before fetching new data
     try {
       String? depotId = await LocalStorageService.getUserId();
       if (depotId != null) {
         List<DailySummary> fetchedDailySummaries =
             await apiService.getAllDailySummariesByDepot(depotId);
         dailySummaries.assignAll(fetchedDailySummaries);
+        dailySummaryIndex.value++;
       }
     } catch (e) {
-      print('Failed to fetch daily summaries: $e');
+      errorMessage.value = 'Failed to fetch daily summaries: $e';
     } finally {
       isLoading.value = false;
+      EasyLoading.dismiss();
     }
   }
 
-  Future<void> createDailySummary() async {
+  Future<void> fetchDailySummariesByDepotAndMonth(int month, int year) async {
     isLoading.value = true;
+    EasyLoading.show(status: 'Loading...');
+    dailySummaries.clear(); // Clear old data before fetching new data
     try {
       String? depotId = await LocalStorageService.getUserId();
       if (depotId != null) {
-        bool success = await apiService.createDailySummaryByDepotToday(depotId);
+        List<DailySummary> fetchedDailySummaries = await apiService
+            .getDailySummariesByDepotAndMonth(depotId, month, year);
+        dailySummaries.assignAll(fetchedDailySummaries);
+        dailySummaryIndex.value++;
+      }
+    } catch (e) {
+      errorMessage.value = 'Failed to fetch daily summaries by month: $e';
+    } finally {
+      isLoading.value = false;
+      EasyLoading.dismiss();
+    }
+  }
+
+  Future<void> deleteDailySummary(String summaryId) async {
+    isLoading.value = true;
+    EasyLoading.show(status: 'Loading...');
+    try {
+      String? depotId = await LocalStorageService.getUserId();
+      if (depotId != null) {
+        bool success = await apiService.deleteDailySummary(depotId, summaryId);
         if (success) {
-          await fetchDailySummaryByDepotToday();
+          dailySummaries.removeWhere((summary) => summary.id == summaryId);
+          dailySummaryIndex.value++;
           Get.snackbar(
             'Thành công',
-            'Tạo báo cáo tổng hợp trong ngày thành công',
+            'Xóa báo cáo tổng hợp thành công',
             backgroundColor: AppColors.snackBarSuccessColor,
             colorText: AppColors.buttonTextColor,
           );
         } else {
           Get.snackbar(
             'Lỗi',
-            'Không thể tạo báo cáo tổng hợp trong ngày',
+            'Xóa báo cáo tổng hợp thất bại',
             backgroundColor: AppColors.errorColor,
             colorText: AppColors.buttonTextColor,
           );
@@ -88,12 +117,13 @@ class DailySummaryController extends GetxController {
     } catch (e) {
       Get.snackbar(
         'Lỗi',
-        'Không thể tạo báo cáo tổng hợp trong ngày',
+        'Xóa báo cáo tổng hợp thất bại',
         backgroundColor: AppColors.errorColor,
         colorText: AppColors.buttonTextColor,
       );
     } finally {
       isLoading.value = false;
+      EasyLoading.dismiss();
     }
   }
 }

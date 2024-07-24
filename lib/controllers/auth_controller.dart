@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 import '../apps/config/app_colors.dart';
 import '../models/user_model.dart';
@@ -50,7 +52,9 @@ class AuthController extends GetxController {
   }
 
   void login(String username, String password) async {
+    EasyLoading.show(status: 'Đang đăng nhập...');
     var response = await apiService.login(username, password);
+    EasyLoading.dismiss();
     if (response != null) {
       user.value = response;
       isLoggedIn.value = true;
