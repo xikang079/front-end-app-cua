@@ -3,9 +3,9 @@ import 'package:get/get.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../apps/config/app_colors.dart';
-import '../../controllers/auth_controller.dart';
-import '../../widgets/confirm_dialog.dart';
+import '../../../apps/config/app_colors.dart';
+import '../../../controllers/auth_controller.dart';
+import '../../../widgets/confirm_dialog.dart';
 import '../connectPrinterView/connect_printer_view.dart';
 
 class SettingsView extends StatelessWidget {
@@ -17,12 +17,11 @@ class SettingsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cài đặt'),
+        title: const Text('Cài đặt', style: TextStyle(color: Colors.white)),
         backgroundColor: AppColors.primaryColor,
       ),
       body: Container(
         padding: const EdgeInsets.all(16.0),
-        color: AppColors.backgroundColor,
         child: Column(
           children: [
             ListTile(
@@ -68,29 +67,37 @@ class SettingsView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return ConfirmationDialog(
-                      title: 'Xác nhận đăng xuất',
-                      content: 'Bạn có chắc chắn muốn đăng xuất không?',
-                      onConfirm: () {
-                        authController.logout();
-                      },
-                    );
-                  },
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                foregroundColor: AppColors.buttonTextColor,
-                backgroundColor: AppColors.buttonColor,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+            Container(
+              margin: const EdgeInsets.only(right: 10.0),
+              child: TextButton.icon(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return ConfirmationDialog(
+                        title: 'Xác nhận đăng xuất',
+                        content: 'Bạn có chắc chắn muốn đăng xuất không?',
+                        onConfirm: () {
+                          authController.logout();
+                        },
+                      );
+                    },
+                  );
+                },
+                icon: const Icon(Icons.logout, color: Colors.red),
+                label: const Text('Đăng xuất', style: TextStyle(fontSize: 16)),
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 10.0, horizontal: 16.0),
+                  shape: RoundedRectangleBorder(
+                    side: const BorderSide(color: Colors.grey, width: 3),
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
               ),
-              child: const Text('Đăng xuất', style: TextStyle(fontSize: 16)),
             ),
+            const SizedBox(height: 20),
           ],
         ),
       ),

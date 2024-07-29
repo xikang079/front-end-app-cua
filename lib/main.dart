@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:permission_handler/permission_handler.dart';
-// import 'package:bluetooth_print/bluetooth_print.dart';
-// import 'package:bluetooth_print/bluetooth_print_model.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'apps/config/app_colors.dart';
 import 'routes/route_custom.dart';
@@ -54,6 +53,16 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       getPages: AppRoutes.routes,
       builder: EasyLoading.init(),
+      locale: const Locale('vi', 'VN'), // Đặt ngôn ngữ mặc định là tiếng Việt
+      supportedLocales: const [
+        Locale('en', 'US'), // Tiếng Anh
+        Locale('vi', 'VN'), // Tiếng Việt
+      ],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
     );
   }
 }

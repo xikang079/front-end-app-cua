@@ -32,3 +32,22 @@ String removeDiacritics(String str) {
   }
   return str;
 }
+
+String formatShortenNumber(double number) {
+  if (number >= 1000) {
+    return (number / 1000).toStringAsFixed(0);
+  } else {
+    return number.toStringAsFixed(0);
+  }
+}
+
+String formatShortenNumberWithoutSymbol(double number) {
+  final formatter = NumberFormat('#,###', 'vi_VN');
+  String formattedNumber = formatter.format(number);
+
+  if (number >= 1000) {
+    return (number / 1000).toStringAsFixed(0);
+  } else {
+    return formattedNumber;
+  }
+}

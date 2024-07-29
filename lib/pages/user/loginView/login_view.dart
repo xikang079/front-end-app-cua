@@ -3,10 +3,10 @@ import 'package:get/get.dart';
 import 'package:project_crab_front_end/widgets/touch_off_keyboard.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 
-import '../../apps/config/app_colors.dart';
-import '../../controllers/auth_controller.dart';
-import '../../widgets/animated_button.dart';
-import '../../widgets/custom_text_field.dart';
+import '../../../apps/config/app_colors.dart';
+import '../../../controllers/auth_controller.dart';
+import '../../../widgets/animated_button.dart';
+import '../../../widgets/custom_text_field.dart';
 
 class LoginView extends StatelessWidget {
   final AuthController authController = Get.find<AuthController>();

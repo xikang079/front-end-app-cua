@@ -4,9 +4,9 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:shimmer/shimmer.dart';
 // import 'package:flutter_easyloading/flutter_easyloading.dart';
 
-import '../../apps/config/app_colors.dart';
-import '../../apps/config/format_vnd.dart';
-import '../../controllers/daily_summary_controller.dart';
+import '../../../apps/config/app_colors.dart';
+import '../../../apps/config/format_vnd.dart';
+import '../../../controllers/daily_summary_controller.dart';
 import 'daily_summary_detail_view.dart';
 
 class DailySummaryView extends StatelessWidget {
@@ -22,14 +22,19 @@ class DailySummaryView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 40,
         title: const Text(
           'Quản lí báo cáo cuối ngày',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.white, fontSize: 18),
         ),
         backgroundColor: AppColors.primaryColor,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(
+              Icons.refresh,
+              color: Colors.white,
+              size: 30,
+            ),
             onPressed: () {
               controller.fetchDailySummariesByDepotAndMonth(
                   controller.selectedMonth.value,
@@ -127,7 +132,7 @@ class DailySummaryView extends StatelessWidget {
                         ),
                       ),
                       subtitle: Text(
-                        'Tổng số tiền: ${formatCurrency(summary.totalAmount)}',
+                        'Tổng tiền mua: ${formatCurrency(summary.totalAmount)}',
                         style: const TextStyle(
                           fontSize: 16,
                         ),

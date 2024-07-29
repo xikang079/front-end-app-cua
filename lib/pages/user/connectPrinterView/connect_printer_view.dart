@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../apps/config/app_colors.dart';
+import '../../../apps/config/app_colors.dart';
 
 class PrinterConnectionView extends StatefulWidget {
   const PrinterConnectionView({super.key});

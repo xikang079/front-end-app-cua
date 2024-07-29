@@ -1,18 +1,17 @@
-// views/invoice_creation_view.dart
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:shimmer/shimmer.dart';
 
-import '../../apps/config/app_colors.dart';
-import '../../apps/config/format_vnd.dart';
-import '../../controllers/crab_purchase_controller.dart';
-import '../../controllers/crabtype_controller.dart';
-import '../../controllers/trader_controller.dart';
-import '../../models/crabpurchase_model.dart' as purchaseModel;
-import '../../models/trader_model.dart';
-import '../../widgets/touch_off_keyboard.dart';
+import '../../../apps/config/app_colors.dart';
+import '../../../apps/config/format_vnd.dart';
+import '../../../controllers/crab_purchase_controller.dart';
+import '../../../controllers/crabtype_controller.dart';
+import '../../../controllers/trader_controller.dart';
+import '../../../models/trader_model.dart';
+import '../../../widgets/touch_off_keyboard.dart';
+import '../../../models/crabpurchase_model.dart' as purchaseModel;
 import 'invoice_pdf_view.dart';
 
 class InvoiceCreationView extends StatefulWidget {
@@ -28,7 +27,9 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
   final CrabTypeController crabTypeController = Get.put(CrabTypeController());
   final TraderController traderController = Get.put(TraderController());
 
-  final TextEditingController weightController = TextEditingController();
+  final List<TextEditingController> weightControllers = [];
+  final List<bool> tareControllers = [];
+  final List<double> originalWeights = [];
   final List<purchaseModel.CrabDetail> crabDetails = [];
   Trader? selectedTrader;
   final FocusNode weightFocusNode = FocusNode();
@@ -36,6 +37,14 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
   @override
   void initState() {
     super.initState();
+    _initializeCrabDetails();
+    // Đảm bảo rằng bàn phím không tự động bật lên khi trang này được dựng
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).unfocus();
+    });
+  }
+
+  void _initializeCrabDetails() {
     crabTypeController.loadSelectedCrabTypesForToday();
     crabDetails.addAll(crabTypeController.selectedCrabTypes.map((crabType) {
       return purchaseModel.CrabDetail(
@@ -45,19 +54,40 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
         totalCost: 0,
       );
     }).toList());
+    weightControllers.clear();
+    tareControllers.clear();
+    originalWeights.clear();
+    for (int i = 0; i < crabDetails.length; i++) {
+      weightControllers.add(TextEditingController());
+      tareControllers.add(false);
+      originalWeights.add(0);
+    }
   }
 
   @override
   void dispose() {
-    weightController.dispose();
+    for (var controller in weightControllers) {
+      controller.dispose();
+    }
     weightFocusNode.dispose();
     super.dispose();
+  }
+
+  void _resetForm() {
+    setState(() {
+      selectedTrader = null;
+      crabDetails.clear();
+      for (var controller in weightControllers) {
+        controller.clear();
+      }
+      _initializeCrabDetails();
+      FocusScope.of(context).unfocus();
+    });
   }
 
   void _onSubmitInvoice() async {
     if (selectedTrader != null && crabDetails.isNotEmpty) {
       EasyLoading.show(status: 'Đang lưu hóa đơn...');
-      // Cập nhật lại danh sách crabDetails
       crabDetails.removeWhere((detail) => detail.weight == 0);
 
       if (crabDetails.isEmpty) {
@@ -71,16 +101,33 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
         return;
       }
 
-      final double totalCost =
-          crabDetails.fold(0, (sum, item) => sum + item.totalCost);
+      // Gộp các loại cua cùng tên
+      Map<String, purchaseModel.CrabDetail> mergedDetails = {};
+      for (var detail in crabDetails) {
+        if (mergedDetails.containsKey(detail.crabType.name)) {
+          mergedDetails[detail.crabType.name]!.weight += detail.weight;
+          mergedDetails[detail.crabType.name]!.totalCost += detail.totalCost;
+        } else {
+          mergedDetails[detail.crabType.name] = purchaseModel.CrabDetail(
+            crabType: detail.crabType,
+            weight: detail.weight,
+            pricePerKg: detail.pricePerKg,
+            totalCost: detail.totalCost,
+          );
+        }
+      }
 
+      final List<purchaseModel.CrabDetail> finalCrabDetails =
+          mergedDetails.values.toList();
+      final double totalCost =
+          finalCrabDetails.fold(0, (sum, item) => sum + item.totalCost);
       final DateTime now = DateTime.now().toUtc().add(const Duration(hours: 7));
 
       final purchaseModel.CrabPurchase crabPurchase =
           purchaseModel.CrabPurchase(
         id: '',
         trader: selectedTrader!,
-        crabs: List<purchaseModel.CrabDetail>.from(crabDetails),
+        crabs: finalCrabDetails,
         totalCost: totalCost,
         createdAt: now,
         updatedAt: now,
@@ -89,14 +136,13 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
       bool success =
           await crabPurchaseController.createCrabPurchase(crabPurchase);
       if (success) {
-        setState(() {
-          selectedTrader = null;
-          crabDetails.clear();
-          weightController.clear();
-          weightFocusNode.unfocus();
-        });
+        _resetForm();
 
-        Get.to(() => InvoicePdfView(crabPurchase: crabPurchase));
+        final result =
+            await Get.to(() => InvoicePdfView(crabPurchase: crabPurchase));
+        if (result == true) {
+          _resetForm(); // Ensure form is reset when coming back
+        }
       }
       EasyLoading.dismiss();
     } else {
@@ -107,6 +153,43 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
         colorText: AppColors.buttonTextColor,
       );
     }
+  }
+
+  void _addCrate(int index) {
+    setState(() {
+      final crabDetail = crabDetails[index];
+      crabDetails.insert(
+        index + 1,
+        purchaseModel.CrabDetail(
+          crabType: crabDetail.crabType,
+          weight: 0,
+          pricePerKg: crabDetail.pricePerKg,
+          totalCost: 0,
+        ),
+      );
+      weightControllers.insert(index + 1, TextEditingController());
+      tareControllers.insert(index + 1, false);
+      originalWeights.insert(index + 1, 0);
+    });
+  }
+
+  void _toggleTare(int index) {
+    setState(() {
+      tareControllers[index] = !tareControllers[index];
+      final double weight =
+          double.tryParse(formatWeightInput(weightControllers[index].text)) ??
+              0;
+      if (tareControllers[index]) {
+        originalWeights[index] = weight;
+        crabDetails[index].weight =
+            double.parse((weight - 2.8).toStringAsFixed(2));
+      } else {
+        crabDetails[index].weight = originalWeights[index];
+      }
+      crabDetails[index].totalCost =
+          crabDetails[index].weight * crabDetails[index].pricePerKg;
+      weightControllers[index].text = crabDetails[index].weight.toString();
+    });
   }
 
   Widget _buildShimmerEffect() {
@@ -220,9 +303,10 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                     border: TableBorder.all(color: Colors.black54, width: 1),
                     columnWidths: const {
                       0: FlexColumnWidth(2),
-                      1: FlexColumnWidth(2),
-                      2: FlexColumnWidth(2),
+                      1: FlexColumnWidth(1.5),
+                      2: FlexColumnWidth(1),
                       3: FlexColumnWidth(2),
+                      4: FlexColumnWidth(2),
                     },
                     children: [
                       TableRow(
@@ -233,7 +317,7 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                               padding: EdgeInsets.all(8.0),
                               child: Center(
                                 child: Text(
-                                  'Tên loại cua',
+                                  'Loại cua',
                                   style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold),
@@ -246,7 +330,7 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                               padding: EdgeInsets.all(8.0),
                               child: Center(
                                 child: Text(
-                                  'Số kí (kg)',
+                                  'Số kí',
                                   style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold),
@@ -259,7 +343,7 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                               padding: EdgeInsets.all(8.0),
                               child: Center(
                                 child: Text(
-                                  'Giá (VND/kg)',
+                                  'Giá',
                                   style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold),
@@ -272,7 +356,20 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                               padding: EdgeInsets.all(8.0),
                               child: Center(
                                 child: Text(
-                                  'Tổng tiền',
+                                  'Tổng',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                          ),
+                          TableCell(
+                            child: Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Center(
+                                child: Text(
+                                  'Thêm',
                                   style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold),
@@ -282,7 +379,9 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                           ),
                         ],
                       ),
-                      ...crabDetails.map((crabDetail) {
+                      ...crabDetails.asMap().entries.map((entry) {
+                        int index = entry.key;
+                        purchaseModel.CrabDetail crabDetail = entry.value;
                         return TableRow(
                           children: [
                             TableCell(
@@ -301,6 +400,7 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                                 padding: const EdgeInsets.all(8.0),
                                 child: Center(
                                   child: TextField(
+                                    controller: weightControllers[index],
                                     decoration: const InputDecoration(
                                       labelStyle: TextStyle(fontSize: 14),
                                     ),
@@ -310,9 +410,18 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                                               formatWeightInput(value)) ??
                                           0;
                                       setState(() {
-                                        crabDetail.weight = weight;
+                                        crabDetail.weight =
+                                            tareControllers[index]
+                                                ? double.parse((weight - 2.8)
+                                                    .toStringAsFixed(2))
+                                                : weight;
+                                        originalWeights[index] =
+                                            tareControllers[index]
+                                                ? weight
+                                                : originalWeights[index];
                                         crabDetail.totalCost =
-                                            weight * crabDetail.pricePerKg;
+                                            crabDetail.weight *
+                                                crabDetail.pricePerKg;
                                       });
                                     },
                                   ),
@@ -324,7 +433,7 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                                 padding: const EdgeInsets.all(8.0),
                                 child: Center(
                                   child: Text(
-                                    formatNumberWithoutSymbol(
+                                    formatShortenNumberWithoutSymbol(
                                         crabDetail.pricePerKg),
                                     style: const TextStyle(fontSize: 16),
                                   ),
@@ -340,6 +449,24 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                                         crabDetail.totalCost),
                                     style: const TextStyle(fontSize: 16),
                                   ),
+                                ),
+                              ),
+                            ),
+                            TableCell(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.add_box),
+                                      onPressed: () => _addCrate(index),
+                                    ),
+                                    Checkbox(
+                                      value: tareControllers[index],
+                                      onChanged: (value) => _toggleTare(index),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),

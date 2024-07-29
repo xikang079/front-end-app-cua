@@ -6,7 +6,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../apps/config/app_colors.dart';
 import '../models/crabpurchase_model.dart';
 import '../models/dailysummary_model.dart';
-import '../pages/dailySumView/daily_summary_detail_view.dart';
+import '../pages/user/dailySumView/daily_summary_detail_view.dart';
 import '../services/api_crab_purchase_service.dart';
 import '../services/api_service_daily_summary.dart';
 import '../services/local_storage_service.dart';
@@ -249,8 +249,6 @@ class CrabPurchaseController extends GetxController {
           if (fetchedDailySummary != null) {
             dailySummary.value = fetchedDailySummary;
             reloadData();
-            print(
-                'Fetched Daily Summary: ${fetchedDailySummary.toJson()}'); // Debug
             Get.to(() =>
                 DailySummaryDetailView(dailySummary: fetchedDailySummary));
             Get.snackbar(
@@ -264,8 +262,6 @@ class CrabPurchaseController extends GetxController {
             // Sử dụng dữ liệu tạm thời để hiển thị
             DailySummary tempDailySummary =
                 calculateDailySummary(crabPurchases);
-            print(
-                'Temporary Daily Summary: ${tempDailySummary.toJson()}'); // Debug
             Get.to(
                 () => DailySummaryDetailView(dailySummary: tempDailySummary));
             Get.snackbar(

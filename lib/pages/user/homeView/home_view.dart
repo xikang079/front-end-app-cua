@@ -1,13 +1,14 @@
 import 'package:blue_thermal_printer/blue_thermal_printer.dart' as bt;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:project_crab_front_end/pages/user/crabPurchaseAndSummaryDailyView/crab_and_summary_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../crabPriceView/price_management_view.dart';
 import '../dailySumView/daily_summary_view.dart';
 import '../invoiceView/invoice_creation_view.dart';
 import '../settingView/settings_view.dart';
 import '../traderView/trader_management_view.dart';
-import '../../apps/config/app_colors.dart';
+import '../../../apps/config/app_colors.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -22,7 +23,7 @@ class _HomeViewState extends State<HomeView> {
     const CrabTypeManagementView(),
     const TraderManagementView(),
     const InvoiceCreationView(),
-    DailySummaryView(),
+    const CrabAndSummaryView(),
     SettingsView(),
   ];
 
@@ -51,6 +52,21 @@ class _HomeViewState extends State<HomeView> {
       }
 
       if (device != null) {
+        // Kiểm tra nếu máy in đã được kết nối
+        bool? isConnected = await bluetooth.isConnected;
+        if (isConnected != null && isConnected) {
+          setState(() {
+            _isConnected = true;
+          });
+          Get.snackbar(
+            'Thông báo',
+            'Máy in đã được kết nối',
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+          );
+          return;
+        }
+
         try {
           await bluetooth.connect(device);
           setState(() {

@@ -8,10 +8,10 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
-import '../../models/crabpurchase_model.dart' as purchaseModel;
-import '../../apps/config/app_colors.dart';
-import '../../apps/config/format_vnd.dart';
-import '../../widgets/printer_dialog.dart';
+import '../../../models/crabpurchase_model.dart' as purchaseModel;
+import '../../../apps/config/app_colors.dart';
+import '../../../apps/config/format_vnd.dart';
+import '../../../widgets/printer_dialog.dart';
 
 class InvoicePdfView extends StatefulWidget {
   final purchaseModel.CrabPurchase crabPurchase;
@@ -53,16 +53,18 @@ class _InvoicePdfViewState extends State<InvoicePdfView> {
     );
   }
 
-  String formatLine(String left, String middle, String right) {
+  String formatLine(String stt, String left, String middle, String right) {
+    const int sttWidth = 8;
     const int leftWidth = 10;
-    const int middleWidth = 15;
-    const int rightWidth = 20;
+    const int middleWidth = 12;
+    const int rightWidth = 15;
 
+    String paddedSTT = stt.padRight(sttWidth);
     String paddedLeft = left.padRight(leftWidth);
     String paddedMiddle = middle.padLeft(middleWidth);
     String paddedRight = right.padLeft(rightWidth);
 
-    return "$paddedLeft$paddedMiddle$paddedRight";
+    return "$paddedSTT$paddedLeft$paddedMiddle$paddedRight";
   }
 
   Future<void> _printReceipt() async {
@@ -75,7 +77,7 @@ class _InvoicePdfViewState extends State<InvoicePdfView> {
         // Thông tin người bán và thời gian
         bluetooth.printCustom(
             "Ten lai: ${removeDiacritics(widget.crabPurchase.trader.name)}",
-            1,
+            2,
             0);
         String formattedDateTime =
             DateFormat('HH:mm dd-MM-yyyy').format(DateTime.now());
@@ -85,10 +87,13 @@ class _InvoicePdfViewState extends State<InvoicePdfView> {
         // Đường kẻ ngang
         bluetooth.printCustom("-".padRight(32, '-'), 1, 1);
 
-        bluetooth.printCustom(formatLine("Loai cua", "So kg", "Gia cua"), 1, 0);
-        for (var crabDetail in widget.crabPurchase.crabs) {
+        bluetooth.printCustom(
+            formatLine("STT", "Loai cua", "So kg", "Gia cua"), 1, 0);
+        for (int i = 0; i < widget.crabPurchase.crabs.length; i++) {
+          var crabDetail = widget.crabPurchase.crabs[i];
           bluetooth.printCustom(
             formatLine(
+              (i + 1).toString(),
               crabDetail.crabType.name,
               crabDetail.weight.toString(),
               formatNumberWithoutSymbol(crabDetail.pricePerKg),
@@ -103,13 +108,16 @@ class _InvoicePdfViewState extends State<InvoicePdfView> {
 
         // Tổng cộng
         bluetooth.printCustom(
-            formatLine("Tong cong:", "",
+            formatLine("Tong cong:", "", "",
                 formatNumberWithoutSymbol(widget.crabPurchase.totalCost)),
             3,
             0);
 
         bluetooth.printNewLine();
         bluetooth.printCustom("Cam on quy khach!", 2, 1);
+        bluetooth.printNewLine();
+        bluetooth.printNewLine();
+        bluetooth.printNewLine();
         bluetooth.printNewLine();
         bluetooth.paperCut();
       } catch (e) {
@@ -133,8 +141,12 @@ class _InvoicePdfViewState extends State<InvoicePdfView> {
     final doc = pw.Document();
 
     // Lấy thông tin tên cua từ controller và tạo danh sách dữ liệu cho bảng
-    final List<List<String>> data = widget.crabPurchase.crabs.map((crabDetail) {
+    final List<List<String>> data =
+        widget.crabPurchase.crabs.asMap().entries.map((entry) {
+      int index = entry.key;
+      var crabDetail = entry.value;
       return [
+        (index + 1).toString(),
         crabDetail.crabType.name,
         crabDetail.weight.toString(),
         formatNumberWithoutSymbol(crabDetail.pricePerKg),
@@ -178,6 +190,7 @@ class _InvoicePdfViewState extends State<InvoicePdfView> {
               pw.Table.fromTextArray(
                 border: pw.TableBorder.all(),
                 headers: [
+                  'STT',
                   'Tên Cua',
                   'Số KG',
                   'Giá Cua',
@@ -193,13 +206,15 @@ class _InvoicePdfViewState extends State<InvoicePdfView> {
                 ),
                 cellAlignments: {
                   0: pw.Alignment.centerLeft,
-                  1: pw.Alignment.center,
-                  2: pw.Alignment.centerRight,
+                  1: pw.Alignment.centerLeft,
+                  2: pw.Alignment.center,
+                  3: pw.Alignment.centerRight,
                 },
                 columnWidths: {
-                  0: const pw.FlexColumnWidth(2),
+                  0: const pw.FlexColumnWidth(0.65),
                   1: const pw.FlexColumnWidth(1),
-                  2: const pw.FlexColumnWidth(1),
+                  2: const pw.FlexColumnWidth(0.8),
+                  3: const pw.FlexColumnWidth(1.1),
                 },
               ),
               pw.Divider(),
@@ -254,6 +269,14 @@ class _InvoicePdfViewState extends State<InvoicePdfView> {
       body: PdfPreview(
         build: (format) async {
           return _generatePdf();
+        },
+        onPrinted: (context) {
+          Navigator.pop(context, true);
+          FocusScope.of(context).unfocus();
+        },
+        onShared: (context) {
+          Navigator.pop(context, true);
+          FocusScope.of(context).unfocus();
         },
       ),
     );

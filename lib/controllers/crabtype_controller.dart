@@ -18,7 +18,6 @@ class CrabTypeController extends GetxController {
     super.onInit();
     fetchCrabTypes();
     loadSelectedCrabTypesForToday();
-    scheduleDailyReset();
   }
 
   void saveSelectedCrabTypesForToday() async {
@@ -43,22 +42,6 @@ class CrabTypeController extends GetxController {
           .toList());
       selectedCrabTypesTemp.assignAll(selectedCrabTypes);
     }
-  }
-
-  void scheduleDailyReset() {
-    DateTime now = DateTime.now();
-    DateTime resetTime = DateTime(now.year, now.month, now.day, 6);
-    if (now.isAfter(resetTime)) {
-      resetTime = resetTime.add(const Duration(days: 1));
-    }
-    Duration timeUntilReset = resetTime.difference(now);
-
-    Future.delayed(timeUntilReset, () {
-      selectedCrabTypes.clear();
-      selectedCrabTypesTemp.clear();
-      saveSelectedCrabTypesForToday();
-      scheduleDailyReset();
-    });
   }
 
   String getCrabTypeNameById(String id) {

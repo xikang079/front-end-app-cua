@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../apps/config/app_colors.dart';
-import '../../apps/config/format_vnd.dart';
-import '../../controllers/crabtype_controller.dart';
-import '../../models/dailysummary_model.dart';
+import '../../../apps/config/app_colors.dart';
+import '../../../apps/config/format_vnd.dart';
+import '../../../controllers/crabtype_controller.dart';
+import '../../../models/dailysummary_model.dart';
 
 class DailySummaryDetailView extends StatelessWidget {
   final DailySummary dailySummary;
@@ -14,6 +14,9 @@ class DailySummaryDetailView extends StatelessWidget {
   Widget build(BuildContext context) {
     final CrabTypeController crabTypeController =
         Get.find<CrabTypeController>();
+
+    double totalWeight = dailySummary.details
+        .fold(0.0, (sum, detail) => sum + detail.totalWeight);
 
     return Scaffold(
       appBar: AppBar(
@@ -38,6 +41,11 @@ class DailySummaryDetailView extends StatelessWidget {
               const SizedBox(height: 8.0),
               Text(
                 'Tổng số tiền: ${formatCurrency(dailySummary.totalAmount)}',
+                style: const TextStyle(fontSize: 18),
+              ),
+              const SizedBox(height: 8.0),
+              Text(
+                'Tổng số ký: ${formatWeight(totalWeight)} kg',
                 style: const TextStyle(fontSize: 18),
               ),
               const SizedBox(height: 16.0),

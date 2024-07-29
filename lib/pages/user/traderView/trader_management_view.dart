@@ -4,53 +4,36 @@ import 'package:sticky_headers/sticky_headers.dart';
 import 'package:shimmer/shimmer.dart';
 // import 'package:flutter_easyloading/flutter_easyloading.dart';
 
-import '../../apps/config/app_colors.dart';
-import '../../apps/config/format_vnd.dart';
-import '../../controllers/crabtype_controller.dart';
-import '../../models/crabtype_model.dart';
-import '../../widgets/confirm_dialog.dart';
+import '../../../apps/config/app_colors.dart';
+import '../../../controllers/trader_controller.dart';
+import '../../../models/trader_model.dart';
+import '../../../widgets/confirm_dialog.dart';
 
-class CrabTypeManagementView extends StatelessWidget {
-  const CrabTypeManagementView({super.key});
+class TraderManagementView extends StatelessWidget {
+  const TraderManagementView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final CrabTypeController crabTypeController = Get.put(CrabTypeController());
+    final TraderController traderController = Get.put(TraderController());
 
-    void showCrabTypeForm([CrabType? crabType]) {
+    void showTraderForm([Trader? trader]) {
       TextEditingController nameController =
-          TextEditingController(text: crabType?.name ?? '');
-      TextEditingController priceController = TextEditingController(
-          text: crabType != null
-              ? formatInputCurrency(crabType.pricePerKg.toString())
-              : '');
-
-      priceController.addListener(() {
-        String value = priceController.text.replaceAll(',', '');
-        if (value.isNotEmpty) {
-          priceController.value = priceController.value.copyWith(
-            text: formatInputCurrency(value),
-            selection: TextSelection.collapsed(
-                offset: formatInputCurrency(value).length),
-          );
-        }
-      });
-
+          TextEditingController(text: trader?.name ?? '');
+      TextEditingController phoneController =
+          TextEditingController(text: trader?.phone ?? '');
       showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text(
-              crabType == null ? 'Thêm loại cua' : 'Sửa loại cua',
-              style: const TextStyle(color: AppColors.primaryColor),
-            ),
+            title: Text(trader == null ? 'Thêm thương lái' : 'Sửa thương lái',
+                style: const TextStyle(color: AppColors.primaryColor)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: nameController,
                   decoration: const InputDecoration(
-                    labelText: 'Tên loại cua',
+                    labelText: 'Tên lái',
                     labelStyle: TextStyle(color: AppColors.textColor),
                     focusedBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: AppColors.primaryColor),
@@ -58,15 +41,15 @@ class CrabTypeManagementView extends StatelessWidget {
                   ),
                 ),
                 TextField(
-                  controller: priceController,
+                  controller: phoneController,
                   decoration: const InputDecoration(
-                    labelText: 'Giá theo kg',
+                    labelText: 'SĐT Lái',
                     labelStyle: TextStyle(color: AppColors.textColor),
                     focusedBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: AppColors.primaryColor),
                     ),
                   ),
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.phone,
                 ),
               ],
             ),
@@ -78,26 +61,21 @@ class CrabTypeManagementView extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                   if (nameController.text.isNotEmpty &&
-                      priceController.text.isNotEmpty) {
-                    CrabType newCrabType = CrabType(
-                      id: crabType?.id ?? '',
-                      name: nameController.text.toUpperCase(),
-                      pricePerKg: double.parse(
-                          priceController.text.replaceAll(',', '')),
+                      phoneController.text.isNotEmpty) {
+                    Trader newTrader = Trader(
+                      id: trader?.id ?? '',
+                      name: nameController.text,
+                      phone: phoneController.text,
                     );
-                    if (crabType == null) {
-                      crabTypeController.createCrabType(newCrabType);
+                    if (trader == null) {
+                      traderController.createTrader(newTrader);
                     } else {
-                      crabTypeController.updateCrabType(
-                          crabType.id, newCrabType);
+                      traderController.updateTrader(trader.id, newTrader);
                     }
                     Navigator.of(context).pop();
                   } else {
-                    crabTypeController.showSnackbar(
-                      'Lỗi',
-                      'Vui lòng nhập đầy đủ thông tin',
-                      AppColors.errorColor,
-                    );
+                    traderController.showSnackbar('Lỗi',
+                        'Vui lòng nhập đầy đủ thông tin', AppColors.errorColor);
                   }
                 },
                 child: const Text('Lưu'),
@@ -108,13 +86,15 @@ class CrabTypeManagementView extends StatelessWidget {
       );
     }
 
-    Future<bool> showConfirmationDialog(VoidCallback onConfirm) async {
+    Future<bool> showConfirmationDialog() async {
       return await showDialog(
             context: context,
             builder: (context) => ConfirmationDialog(
               title: 'Xác nhận',
-              content: 'Bạn có chắc chắn muốn xóa loại cua này không?',
-              onConfirm: onConfirm,
+              content: 'Bạn có chắc chắn muốn xóa thương lái này không?',
+              onConfirm: () {
+                // Navigator.of(context).pop(true);
+              },
             ),
           ) ??
           false;
@@ -122,12 +102,9 @@ class CrabTypeManagementView extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Quản lí loại cua',
-          style: TextStyle(
-            color: Colors.white,
-          ),
-        ),
+        title: const Text('Quản lí thương lái',
+            style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.primaryColor,
         actions: [
           IconButton(
             icon: const Icon(
@@ -136,18 +113,17 @@ class CrabTypeManagementView extends StatelessWidget {
               size: 30,
             ),
             onPressed: () {
-              crabTypeController.fetchCrabTypes();
+              traderController.fetchTraders();
             },
           ),
         ],
-        backgroundColor: AppColors.primaryColor,
       ),
       body: Obx(() {
-        if (crabTypeController.isLoading.value) {
+        if (traderController.isLoading.value) {
           return _buildShimmerEffect();
         }
-        if (crabTypeController.crabTypes.isEmpty) {
-          return const Center(child: Text('Không có loại cua nào'));
+        if (traderController.traders.isEmpty) {
+          return const Center(child: Text('Không có thương lái nào'));
         }
         return SingleChildScrollView(
           scrollDirection: Axis.vertical,
@@ -157,10 +133,10 @@ class CrabTypeManagementView extends StatelessWidget {
               header: Table(
                 border: TableBorder.all(color: Colors.black54, width: 1),
                 columnWidths: const {
-                  0: FlexColumnWidth(2),
-                  1: FlexColumnWidth(2),
-                  2: FlexColumnWidth(1),
-                  3: FlexColumnWidth(2),
+                  0: FlexColumnWidth(1),
+                  1: FlexColumnWidth(3),
+                  2: FlexColumnWidth(3),
+                  3: FlexColumnWidth(3),
                 },
                 children: [
                   TableRow(
@@ -169,7 +145,15 @@ class CrabTypeManagementView extends StatelessWidget {
                       TableCell(
                         child: Padding(
                           padding: EdgeInsets.all(8.0),
-                          child: Text('Tên loại cua',
+                          child: Text('STT',
+                              style: TextStyle(
+                                  fontSize: 17, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                      TableCell(
+                        child: Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Text('Tên lái',
                               style: TextStyle(
                                   fontSize: 20, fontWeight: FontWeight.bold)),
                         ),
@@ -177,15 +161,7 @@ class CrabTypeManagementView extends StatelessWidget {
                       TableCell(
                         child: Padding(
                           padding: EdgeInsets.all(8.0),
-                          child: Text('Giá cua/KG',
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                      TableCell(
-                        child: Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text('Chọn',
+                          child: Text('SĐT Lái',
                               style: TextStyle(
                                   fontSize: 20, fontWeight: FontWeight.bold)),
                         ),
@@ -205,52 +181,35 @@ class CrabTypeManagementView extends StatelessWidget {
               content: Table(
                 border: TableBorder.all(color: Colors.black54, width: 1),
                 columnWidths: const {
-                  0: FlexColumnWidth(2),
-                  1: FlexColumnWidth(2),
-                  2: FlexColumnWidth(1),
-                  3: FlexColumnWidth(2),
+                  0: FlexColumnWidth(1),
+                  1: FlexColumnWidth(3),
+                  2: FlexColumnWidth(3),
+                  3: FlexColumnWidth(3),
                 },
-                children: crabTypeController.crabTypes.map((crabType) {
-                  final isSelected = crabTypeController.selectedCrabTypesTemp
-                      .any((selected) => selected.id == crabType.id);
+                children: traderController.traders.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  Trader trader = entry.value;
                   return TableRow(
                     children: [
                       TableCell(
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
-                          child: Text(crabType.name,
-                              style: const TextStyle(fontSize: 24)),
-                        ),
-                      ),
-                      TableCell(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Text(
-                              formatNumberWithoutSymbol(crabType.pricePerKg),
+                          child: Text((index + 1).toString(),
                               style: const TextStyle(fontSize: 20)),
                         ),
                       ),
                       TableCell(
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
-                          child: Transform.scale(
-                            scale: 2,
-                            child: Checkbox(
-                              value: isSelected,
-                              onChanged: (value) {
-                                if (isSelected) {
-                                  crabTypeController.selectedCrabTypesTemp
-                                      .removeWhere((selected) =>
-                                          selected.id == crabType.id);
-                                } else {
-                                  crabTypeController.selectedCrabTypesTemp
-                                      .add(crabType);
-                                }
-                              },
-                              activeColor: Colors.green,
-                              checkColor: Colors.white,
-                            ),
-                          ),
+                          child: Text(trader.name,
+                              style: const TextStyle(fontSize: 20)),
+                        ),
+                      ),
+                      TableCell(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Text(trader.phone,
+                              style: const TextStyle(fontSize: 18)),
                         ),
                       ),
                       TableCell(
@@ -275,7 +234,7 @@ class CrabTypeManagementView extends StatelessWidget {
                                         color: AppColors.primaryColor,
                                         fontSize: 16)),
                                 onPressed: () {
-                                  showCrabTypeForm(crabType);
+                                  showTraderForm(trader);
                                 },
                               ),
                               const SizedBox(width: 8),
@@ -296,12 +255,9 @@ class CrabTypeManagementView extends StatelessWidget {
                                         fontSize: 16)),
                                 onPressed: () async {
                                   bool confirmed =
-                                      await showConfirmationDialog(() {
-                                    crabTypeController
-                                        .deleteCrabType(crabType.id);
-                                  });
+                                      await showConfirmationDialog();
                                   if (confirmed) {
-                                    // crabTypeController.deleteCrabType(crabType.id);
+                                    traderController.deleteTrader(trader.id);
                                   }
                                 },
                               ),
@@ -324,40 +280,21 @@ class CrabTypeManagementView extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Expanded(
-              child: TextButton.icon(
-                onPressed: () {
-                  crabTypeController.saveSelectedCrabTypesForToday();
-                },
-                icon: const Icon(Icons.save, color: Colors.green),
-                label: const Text(
-                  'Lưu cua trong ngày',
-                  style: TextStyle(color: Colors.green),
-                ),
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                  shape: RoundedRectangleBorder(
-                    side: const BorderSide(color: Colors.grey, width: 3),
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                ),
-              ),
-            ),
             Container(
-              width: 20,
-            ),
-            Expanded(
+              margin: const EdgeInsets.only(right: 10.0),
               child: TextButton.icon(
-                onPressed: () => showCrabTypeForm(),
-                icon: const Icon(Icons.add, color: AppColors.primaryColor),
+                onPressed: () => showTraderForm(),
+                icon: const Icon(Icons.add, color: Colors.green),
                 label: const Text(
-                  'Thêm cua mới',
-                  style: TextStyle(color: AppColors.primaryColor),
+                  'Thêm lái',
+                  style: TextStyle(color: Colors.green, fontSize: 16),
                 ),
                 style: TextButton.styleFrom(
                   backgroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 10.0,
+                    horizontal: 16.0,
+                  ),
                   shape: RoundedRectangleBorder(
                     side: const BorderSide(color: Colors.grey, width: 3),
                     borderRadius: BorderRadius.circular(8.0),
@@ -368,8 +305,6 @@ class CrabTypeManagementView extends StatelessWidget {
           ],
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      backgroundColor: AppColors.backgroundColor,
     );
   }
 

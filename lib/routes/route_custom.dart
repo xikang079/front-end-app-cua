@@ -1,18 +1,19 @@
 import 'package:get/get.dart';
-import 'package:project_crab_front_end/pages/connectPrinterView/connect_printer_view.dart';
+import 'package:project_crab_front_end/pages/user/connectPrinterView/connect_printer_view.dart';
 
 import '../bindings/auth_binding.dart';
 import '../bindings/crab_purchase_binding.dart';
 import '../bindings/crabtype_binding.dart';
 import '../bindings/daily_summary_binding.dart';
 import '../bindings/trader_binding.dart';
-import '../pages/dailySumView/daily_summary_detail_view.dart';
-import '../pages/dailySumView/daily_summary_view.dart';
-import '../pages/homeView/home_view.dart';
-import '../pages/invoiceView/daily_invoice_view.dart';
-import '../pages/invoiceView/invoice_creation_view.dart';
-import '../pages/invoiceView/invoice_edit_view.dart';
-import '../pages/loginView/login_view.dart';
+import '../pages/user/crabPurchaseByDateView/crab_purchase_by_date_view.dart';
+import '../pages/user/dailySumView/daily_summary_detail_view.dart';
+import '../pages/user/dailySumView/daily_summary_view.dart';
+import '../pages/user/homeView/home_view.dart';
+import '../pages/user/invoiceView/daily_invoice_view.dart';
+import '../pages/user/invoiceView/invoice_creation_view.dart';
+import '../pages/user/invoiceView/invoice_edit_view.dart';
+import '../pages/user/loginView/login_view.dart';
 import '../pages/rootView/root_view.dart';
 
 class AppRoutes {
@@ -66,6 +67,10 @@ class AppRoutes {
     GetPage(
       name: '/printer-view',
       page: () => const PrinterConnectionView(),
+    ),
+    GetPage(
+      name: '/crabPurchasesByDate',
+      page: () => const CrabPurchasesByDateView(), // Route mới
     ),
   ];
 }
