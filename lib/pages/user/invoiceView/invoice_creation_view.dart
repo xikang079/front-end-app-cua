@@ -105,8 +105,13 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
       Map<String, purchaseModel.CrabDetail> mergedDetails = {};
       for (var detail in crabDetails) {
         if (mergedDetails.containsKey(detail.crabType.name)) {
-          mergedDetails[detail.crabType.name]!.weight += detail.weight;
-          mergedDetails[detail.crabType.name]!.totalCost += detail.totalCost;
+          mergedDetails[detail.crabType.name]!.weight = double.parse(
+              (mergedDetails[detail.crabType.name]!.weight + detail.weight)
+                  .toStringAsFixed(2));
+          mergedDetails[detail.crabType.name]!.totalCost = double.parse(
+              (mergedDetails[detail.crabType.name]!.totalCost +
+                      detail.totalCost)
+                  .toStringAsFixed(2));
         } else {
           mergedDetails[detail.crabType.name] = purchaseModel.CrabDetail(
             crabType: detail.crabType,

@@ -246,30 +246,60 @@ class DailyInvoicesView extends StatelessWidget {
               );
             }),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextButton.icon(
-              onPressed: () async {
-                await crabPurchaseController.createDailySummary();
-              },
-              icon: const Icon(Icons.save, color: Colors.green),
-              label: const Text(
-                'Tạo báo cáo cuối ngày',
-                style: TextStyle(color: Colors.green, fontSize: 16),
+          Obx(() {
+            double totalWeight = crabPurchaseController.crabPurchases.fold(
+                0.0,
+                (sum, purchase) =>
+                    sum +
+                    purchase.crabs.fold(
+                      0.0,
+                      (innerSum, crabDetail) => innerSum + crabDetail.weight,
+                    ));
+            int estimatedCrates = (totalWeight / 24).round();
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    children: [
+                      Text(
+                        'Tổng số kí hiện tại: $totalWeight kg',
+                        style:
+                            const TextStyle(fontSize: 16, color: Colors.black),
+                      ),
+                      Text(
+                        'Dự đoán số thùng: $estimatedCrates thùng',
+                        style:
+                            const TextStyle(fontSize: 16, color: Colors.black),
+                      ),
+                    ],
+                  ),
+                  TextButton.icon(
+                    onPressed: () async {
+                      await crabPurchaseController.createDailySummary();
+                    },
+                    icon: const Icon(Icons.save, color: Colors.green),
+                    label: const Text(
+                      'Tạo báo cáo cuối ngày',
+                      style: TextStyle(color: Colors.green, fontSize: 16),
+                    ),
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16.0,
+                        horizontal: 16.0,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        side: const BorderSide(color: Colors.grey, width: 3),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 16.0,
-                  horizontal: 16.0,
-                ),
-                shape: RoundedRectangleBorder(
-                  side: const BorderSide(color: Colors.grey, width: 3),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-            ),
-          ),
+            );
+          }),
         ],
       ),
     );

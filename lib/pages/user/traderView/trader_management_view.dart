@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sticky_headers/sticky_headers.dart';
 import 'package:shimmer/shimmer.dart';
-// import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 import '../../../apps/config/app_colors.dart';
 import '../../../controllers/trader_controller.dart';
+import '../../../controllers/crab_purchase_controller.dart';
 import '../../../models/trader_model.dart';
 import '../../../widgets/confirm_dialog.dart';
 
@@ -15,6 +15,8 @@ class TraderManagementView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TraderController traderController = Get.put(TraderController());
+    final CrabPurchaseController crabPurchaseController =
+        Get.put(CrabPurchaseController());
 
     void showTraderForm([Trader? trader]) {
       TextEditingController nameController =
@@ -114,6 +116,8 @@ class TraderManagementView extends StatelessWidget {
             ),
             onPressed: () {
               traderController.fetchTraders();
+              crabPurchaseController
+                  .fetchCrabPurchasesByDateRange(); // Refresh data mỗi khi giao diện được load lại
             },
           ),
         ],
@@ -134,9 +138,10 @@ class TraderManagementView extends StatelessWidget {
                 border: TableBorder.all(color: Colors.black54, width: 1),
                 columnWidths: const {
                   0: FlexColumnWidth(1),
-                  1: FlexColumnWidth(3),
-                  2: FlexColumnWidth(3),
-                  3: FlexColumnWidth(3),
+                  1: FlexColumnWidth(2.5),
+                  2: FlexColumnWidth(1.5),
+                  3: FlexColumnWidth(2),
+                  4: FlexColumnWidth(3),
                 },
                 children: [
                   TableRow(
@@ -147,7 +152,7 @@ class TraderManagementView extends StatelessWidget {
                           padding: EdgeInsets.all(8.0),
                           child: Text('STT',
                               style: TextStyle(
-                                  fontSize: 17, fontWeight: FontWeight.bold)),
+                                  fontSize: 14, fontWeight: FontWeight.bold)),
                         ),
                       ),
                       TableCell(
@@ -155,15 +160,23 @@ class TraderManagementView extends StatelessWidget {
                           padding: EdgeInsets.all(8.0),
                           child: Text('Tên lái',
                               style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold)),
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
                       ),
                       TableCell(
                         child: Padding(
                           padding: EdgeInsets.all(8.0),
-                          child: Text('SĐT Lái',
+                          child: Text('SĐT',
                               style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold)),
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                      TableCell(
+                        child: Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Text('Trạng thái',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
                       ),
                       TableCell(
@@ -171,7 +184,7 @@ class TraderManagementView extends StatelessWidget {
                           padding: EdgeInsets.all(8.0),
                           child: Text('Hành động',
                               style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold)),
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ],
@@ -182,13 +195,15 @@ class TraderManagementView extends StatelessWidget {
                 border: TableBorder.all(color: Colors.black54, width: 1),
                 columnWidths: const {
                   0: FlexColumnWidth(1),
-                  1: FlexColumnWidth(3),
-                  2: FlexColumnWidth(3),
-                  3: FlexColumnWidth(3),
+                  1: FlexColumnWidth(2.5),
+                  2: FlexColumnWidth(1.5),
+                  3: FlexColumnWidth(2),
+                  4: FlexColumnWidth(3),
                 },
                 children: traderController.traders.asMap().entries.map((entry) {
                   int index = entry.key;
                   Trader trader = entry.value;
+                  bool hasSold = crabPurchaseController.hasSoldCrabs(trader.id);
                   return TableRow(
                     children: [
                       TableCell(
@@ -202,7 +217,7 @@ class TraderManagementView extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
                           child: Text(trader.name,
-                              style: const TextStyle(fontSize: 20)),
+                              style: const TextStyle(fontSize: 18)),
                         ),
                       ),
                       TableCell(
@@ -210,6 +225,17 @@ class TraderManagementView extends StatelessWidget {
                           padding: const EdgeInsets.all(12.0),
                           child: Text(trader.phone,
                               style: const TextStyle(fontSize: 18)),
+                        ),
+                      ),
+                      TableCell(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Text(
+                            hasSold ? 'Đã bán' : 'Chưa bán',
+                            style: TextStyle(
+                                fontSize: 14,
+                                color: hasSold ? Colors.green : Colors.red),
+                          ),
                         ),
                       ),
                       TableCell(

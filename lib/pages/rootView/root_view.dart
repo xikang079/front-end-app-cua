@@ -14,8 +14,10 @@ class RootView extends StatelessWidget {
     return Scaffold(
       body: Obx(() {
         if (authController.isCheckingLoginStatus.value) {
+          EasyLoading.show(status: 'Đang kiểm tra trạng thái đăng nhập...');
           return const Center(child: CircularProgressIndicator());
         } else {
+          EasyLoading.dismiss();
           if (authController.isLoggedIn.value) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               Get.offAllNamed('/home');

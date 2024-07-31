@@ -17,6 +17,7 @@ class DailySummaryDetailView extends StatelessWidget {
 
     double totalWeight = dailySummary.details
         .fold(0.0, (sum, detail) => sum + detail.totalWeight);
+    int estimatedCrates = (totalWeight / 24).round();
 
     return Scaffold(
       appBar: AppBar(
@@ -46,6 +47,11 @@ class DailySummaryDetailView extends StatelessWidget {
               const SizedBox(height: 8.0),
               Text(
                 'Tổng số ký: ${formatWeight(totalWeight)} kg',
+                style: const TextStyle(fontSize: 18),
+              ),
+              const SizedBox(height: 8.0),
+              Text(
+                'Dự đoán số thùng: $estimatedCrates thùng',
                 style: const TextStyle(fontSize: 18),
               ),
               const SizedBox(height: 16.0),

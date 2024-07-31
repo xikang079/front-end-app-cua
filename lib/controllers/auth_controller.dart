@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 import '../apps/config/app_colors.dart';
@@ -24,6 +23,7 @@ class AuthController extends GetxController {
     if (isCheckingLoginStatus.value) return;
     isCheckingLoginStatus.value = true;
 
+    EasyLoading.show(status: 'Đang kiểm tra trạng thái đăng nhập...');
     String? token = await LocalStorageService.getToken();
     String? userId = await LocalStorageService.getUserId();
     if (token != null &&
@@ -49,6 +49,7 @@ class AuthController extends GetxController {
     }
 
     isCheckingLoginStatus.value = false;
+    EasyLoading.dismiss();
   }
 
   void login(String username, String password) async {
@@ -78,10 +79,12 @@ class AuthController extends GetxController {
   }
 
   void logout() async {
+    EasyLoading.show(status: 'Đang đăng xuất...');
     await LocalStorageService.clearToken();
     await LocalStorageService.clearUserId(); // Clear the user ID
     isLoggedIn.value = false;
     user.value = null;
+    EasyLoading.dismiss();
     Get.offAllNamed('/login');
   }
 }

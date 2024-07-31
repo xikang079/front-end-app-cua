@@ -40,6 +40,10 @@ class CrabPurchaseController extends GetxController {
     fetchCrabPurchasesByDateRange();
   }
 
+  bool hasSoldCrabs(String traderId) {
+    return crabPurchases.any((purchase) => purchase.trader.id == traderId);
+  }
+
   void fetchCrabPurchasesByDateRange() async {
     EasyLoading.show(status: 'Đang tải hóa đơn...');
     isLoading.value = true;
