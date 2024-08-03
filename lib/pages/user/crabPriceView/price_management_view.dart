@@ -84,6 +84,7 @@ class CrabTypeManagementView extends StatelessWidget {
                       name: nameController.text.toUpperCase(),
                       pricePerKg: double.parse(
                           priceController.text.replaceAll(',', '')),
+                      createdAt: DateTime.now(),
                     );
                     if (crabType == null) {
                       crabTypeController.createCrabType(newCrabType);

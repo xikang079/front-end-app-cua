@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../../apps/config/app_colors.dart';
 import '../../../apps/config/format_vnd.dart';
 import '../../../controllers/crabtype_controller.dart';
@@ -19,6 +20,18 @@ class DailySummaryDetailView extends StatelessWidget {
         .fold(0.0, (sum, detail) => sum + detail.totalWeight);
     int estimatedCrates = (totalWeight / 24).round();
 
+    // Sort details according to the createdAt field in the corresponding CrabType
+    List<SummaryDetail> sortedDetails = List.from(dailySummary.details);
+    sortedDetails.sort((a, b) {
+      DateTime createdAtA = crabTypeController.crabTypes
+          .firstWhere((crabType) => crabType.id == a.crabType)
+          .createdAt;
+      DateTime createdAtB = crabTypeController.crabTypes
+          .firstWhere((crabType) => crabType.id == b.crabType)
+          .createdAt;
+      return createdAtA.compareTo(createdAtB);
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -36,7 +49,7 @@ class DailySummaryDetailView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Ngày: ${dailySummary.createdAt.toLocal().toString().split(' ')[0]}',
+                'Ngày: ${DateFormat('dd/MM/yyyy').format(dailySummary.createdAt)}',
                 style: const TextStyle(fontSize: 18),
               ),
               const SizedBox(height: 8.0),
@@ -101,7 +114,7 @@ class DailySummaryDetailView extends StatelessWidget {
                       ),
                     ],
                   ),
-                  ...dailySummary.details.asMap().entries.map((entry) {
+                  ...sortedDetails.asMap().entries.map((entry) {
                     int index = entry.key;
                     var detail = entry.value;
                     final crabTypeName =

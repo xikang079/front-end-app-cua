@@ -30,7 +30,7 @@ class DailySummaryController extends GetxController {
 
   Future<void> fetchDailySummaryByDepotToday() async {
     isLoading.value = true;
-    EasyLoading.show(status: 'Loading...');
+    EasyLoading.show(status: 'Đang tải...');
     try {
       String? depotId = await LocalStorageService.getUserId();
       if (depotId != null) {
@@ -51,7 +51,7 @@ class DailySummaryController extends GetxController {
 
   Future<void> fetchAllDailySummariesByDepot() async {
     isLoading.value = true;
-    EasyLoading.show(status: 'Loading...');
+    EasyLoading.show(status: 'Đang tải...');
     dailySummaries.clear(); // Clear old data before fetching new data
     try {
       String? depotId = await LocalStorageService.getUserId();
@@ -71,7 +71,7 @@ class DailySummaryController extends GetxController {
 
   Future<void> fetchDailySummariesByDepotAndMonth(int month, int year) async {
     isLoading.value = true;
-    EasyLoading.show(status: 'Loading...');
+    EasyLoading.show(status: 'đang tải...');
     dailySummaries.clear(); // Clear old data before fetching new data
     try {
       String? depotId = await LocalStorageService.getUserId();
@@ -91,7 +91,7 @@ class DailySummaryController extends GetxController {
 
   Future<void> deleteDailySummary(String summaryId) async {
     isLoading.value = true;
-    EasyLoading.show(status: 'Loading...');
+    EasyLoading.show(status: 'Đang tải...');
     try {
       String? depotId = await LocalStorageService.getUserId();
       if (depotId != null) {

@@ -264,7 +264,7 @@ class DailyInvoicesView extends StatelessWidget {
                   Column(
                     children: [
                       Text(
-                        'Tổng số kí hiện tại: $totalWeight kg',
+                        'Tổng số kí hiện tại: ${totalWeight.toStringAsFixed(2)} kg',
                         style:
                             const TextStyle(fontSize: 16, color: Colors.black),
                       ),
