@@ -33,6 +33,23 @@ String removeDiacritics(String str) {
   return str;
 }
 
+String removeDiacriticsUppercase(String str) {
+  var withDia =
+      'ÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÉÈẺẼẸÊẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÚÙỦŨỤƯỨỪỬỮỰÝỲỶỸỴĐ';
+
+  var withoutDia =
+      'AAAAAAAAAAAAAAAAAEEEEEEEEEEEIIIIIOOOOOOOOOOOOOOOOOUUUUUUUUUUYYYYYD';
+
+  for (int i = 0; i < withDia.length; i++) {
+    if (i >= withoutDia.length) {
+      print("Lỗi tại index: $i, withDia: ${withDia[i]}");
+      break;
+    }
+    str = str.replaceAll(withDia[i], withoutDia[i]);
+  }
+  return str;
+}
+
 String formatShortenNumber(double number) {
   if (number >= 1000) {
     return (number / 1000).toStringAsFixed(0);

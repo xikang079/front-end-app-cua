@@ -94,7 +94,7 @@ class _InvoicePdfViewState extends State<InvoicePdfView> {
           bluetooth.printCustom(
             formatLine(
               (i + 1).toString(),
-              crabDetail.crabType.name,
+              removeDiacriticsUppercase(crabDetail.crabType.name),
               crabDetail.weight.toString(),
               formatNumberWithoutSymbol(crabDetail.pricePerKg),
             ),
