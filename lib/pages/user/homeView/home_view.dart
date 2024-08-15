@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:project_crab_front_end/pages/user/crabPurchaseAndSummaryDailyView/crab_and_summary_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../crabPriceView/price_management_view.dart';
-import '../dailySumView/daily_summary_view.dart';
 import '../invoiceView/invoice_creation_view.dart';
 import '../settingView/settings_view.dart';
 import '../traderView/trader_management_view.dart';

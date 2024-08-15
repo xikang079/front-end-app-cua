@@ -68,3 +68,16 @@ String formatShortenNumberWithoutSymbol(double number) {
     return formattedNumber;
   }
 }
+
+String formatWeight(double weight) {
+  if (weight % 1 == 0) {
+    return weight.toStringAsFixed(0);
+  } else {
+    String formattedWeight = weight.toStringAsFixed(2);
+    if (formattedWeight.endsWith('0')) {
+      return weight.toStringAsFixed(1);
+    } else {
+      return formattedWeight;
+    }
+  }
+}

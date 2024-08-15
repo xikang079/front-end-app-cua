@@ -395,7 +395,10 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                                 child: Center(
                                   child: Text(
                                     crabDetail.crabType.name,
-                                    style: const TextStyle(fontSize: 20),
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -407,7 +410,7 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                                   child: TextField(
                                     controller: weightControllers[index],
                                     decoration: const InputDecoration(
-                                      labelStyle: TextStyle(fontSize: 14),
+                                      labelStyle: TextStyle(fontSize: 18),
                                     ),
                                     keyboardType: TextInputType.number,
                                     onChanged: (value) {
@@ -440,7 +443,10 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                                   child: Text(
                                     formatShortenNumberWithoutSymbol(
                                         crabDetail.pricePerKg),
-                                    style: const TextStyle(fontSize: 16),
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),

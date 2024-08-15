@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../../apps/config/app_colors.dart';
 import '../../../controllers/auth_controller.dart';
 import '../../../widgets/confirm_dialog.dart';

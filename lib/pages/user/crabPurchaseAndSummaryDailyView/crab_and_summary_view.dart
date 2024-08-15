@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:project_crab_front_end/pages/user/crabPurchaseByDateView/crab_purchase_by_date_view.dart';
 import 'package:project_crab_front_end/pages/user/dailySumView/daily_summary_view.dart';
 
-import '../../../apps/config/app_colors.dart';
-
 class CrabAndSummaryView extends StatefulWidget {
   const CrabAndSummaryView({super.key});
 

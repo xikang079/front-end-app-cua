@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -95,7 +93,7 @@ class _InvoicePdfViewState extends State<InvoicePdfView> {
             formatLine(
               (i + 1).toString(),
               removeDiacriticsUppercase(crabDetail.crabType.name),
-              crabDetail.weight.toString(),
+              formatWeight(crabDetail.weight),
               formatNumberWithoutSymbol(crabDetail.pricePerKg),
             ),
             3,
@@ -148,7 +146,7 @@ class _InvoicePdfViewState extends State<InvoicePdfView> {
       return [
         (index + 1).toString(),
         crabDetail.crabType.name,
-        crabDetail.weight.toString(),
+        formatWeight(crabDetail.weight),
         formatNumberWithoutSymbol(crabDetail.pricePerKg),
       ];
     }).toList();
