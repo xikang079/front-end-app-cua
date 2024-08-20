@@ -27,7 +27,6 @@ class ApiServiceDailySummary {
         return handler.next(response);
       },
       onError: (DioException error, handler) {
-        print("DioError: ${error.message}");
         return handler.next(error);
       },
     ));
@@ -94,7 +93,6 @@ class ApiServiceDailySummary {
       });
       return response.statusCode == 201;
     } catch (e) {
-      print('Exception when creating daily summary: $e');
       return false;
     }
   }
@@ -105,7 +103,6 @@ class ApiServiceDailySummary {
           await _dio.delete('/depot/$depotId/summary/$summaryId');
       return response.statusCode == 204 || response.statusCode == 200;
     } catch (e) {
-      print("Error deleting daily summary: $e");
       return false;
     }
   }

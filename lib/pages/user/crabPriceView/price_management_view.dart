@@ -158,8 +158,8 @@ class CrabTypeManagementView extends StatelessWidget {
               header: Table(
                 border: TableBorder.all(color: Colors.black54, width: 1),
                 columnWidths: const {
-                  0: FlexColumnWidth(2),
-                  1: FlexColumnWidth(2),
+                  0: FlexColumnWidth(2.3),
+                  1: FlexColumnWidth(1.8),
                   2: FlexColumnWidth(1),
                   3: FlexColumnWidth(2),
                 },
@@ -178,7 +178,7 @@ class CrabTypeManagementView extends StatelessWidget {
                       TableCell(
                         child: Padding(
                           padding: EdgeInsets.all(8.0),
-                          child: Text('Giá cua/KG',
+                          child: Text('Giá cua',
                               style: TextStyle(
                                   fontSize: 20, fontWeight: FontWeight.bold)),
                         ),
@@ -206,8 +206,8 @@ class CrabTypeManagementView extends StatelessWidget {
               content: Table(
                 border: TableBorder.all(color: Colors.black54, width: 1),
                 columnWidths: const {
-                  0: FlexColumnWidth(2),
-                  1: FlexColumnWidth(2),
+                  0: FlexColumnWidth(2.3),
+                  1: FlexColumnWidth(1.8),
                   2: FlexColumnWidth(1),
                   3: FlexColumnWidth(2),
                 },
@@ -220,15 +220,15 @@ class CrabTypeManagementView extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
                           child: Text(crabType.name,
-                              style: const TextStyle(fontSize: 24)),
+                              style: const TextStyle(fontSize: 27)),
                         ),
                       ),
                       TableCell(
                         child: Padding(
-                          padding: const EdgeInsets.all(12.0),
+                          padding: const EdgeInsets.all(8.0),
                           child: Text(
                               formatNumberWithoutSymbol(crabType.pricePerKg),
-                              style: const TextStyle(fontSize: 20)),
+                              style: const TextStyle(fontSize: 22)),
                         ),
                       ),
                       TableCell(
@@ -271,10 +271,13 @@ class CrabTypeManagementView extends StatelessWidget {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 8, vertical: 6),
                                 ),
-                                child: const Text('Sửa',
-                                    style: TextStyle(
-                                        color: AppColors.primaryColor,
-                                        fontSize: 16)),
+                                child: const Text(
+                                  'Sửa',
+                                  style: TextStyle(
+                                    color: AppColors.primaryColor,
+                                    fontSize: 18,
+                                  ),
+                                ),
                                 onPressed: () {
                                   showCrabTypeForm(crabType);
                                 },
@@ -291,10 +294,13 @@ class CrabTypeManagementView extends StatelessWidget {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 8, vertical: 6),
                                 ),
-                                child: const Text('Xóa',
-                                    style: TextStyle(
-                                        color: AppColors.errorColor,
-                                        fontSize: 16)),
+                                child: const Text(
+                                  'Xóa',
+                                  style: TextStyle(
+                                    color: AppColors.errorColor,
+                                    fontSize: 18,
+                                  ),
+                                ),
                                 onPressed: () async {
                                   bool confirmed =
                                       await showConfirmationDialog(() {

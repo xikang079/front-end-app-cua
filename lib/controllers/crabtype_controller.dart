@@ -59,7 +59,6 @@ class CrabTypeController extends GetxController {
       crabTypes.assignAll(fetchedCrabTypes);
       loadSelectedCrabTypesForToday();
     } catch (e) {
-      print('Không thể tải danh sách loại cua: $e');
       showSnackbar(
           'Lỗi', 'Không thể tải danh sách loại cua', AppColors.errorColor);
     } finally {

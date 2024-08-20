@@ -152,7 +152,7 @@ class TraderManagementView extends StatelessWidget {
                           padding: EdgeInsets.all(8.0),
                           child: Text('STT',
                               style: TextStyle(
-                                  fontSize: 14, fontWeight: FontWeight.bold)),
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
                       ),
                       TableCell(
@@ -160,7 +160,7 @@ class TraderManagementView extends StatelessWidget {
                           padding: EdgeInsets.all(8.0),
                           child: Text('Tên lái',
                               style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                                  fontSize: 20, fontWeight: FontWeight.bold)),
                         ),
                       ),
                       TableCell(
@@ -168,7 +168,7 @@ class TraderManagementView extends StatelessWidget {
                           padding: EdgeInsets.all(8.0),
                           child: Text('SĐT',
                               style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                                  fontSize: 20, fontWeight: FontWeight.bold)),
                         ),
                       ),
                       TableCell(
@@ -184,7 +184,7 @@ class TraderManagementView extends StatelessWidget {
                           padding: EdgeInsets.all(8.0),
                           child: Text('Hành động',
                               style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                                  fontSize: 20, fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ],
@@ -217,14 +217,18 @@ class TraderManagementView extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
                           child: Text(trader.name,
-                              style: const TextStyle(fontSize: 18)),
+                              style: const TextStyle(fontSize: 24)),
                         ),
                       ),
                       TableCell(
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
-                          child: Text(trader.phone,
-                              style: const TextStyle(fontSize: 18)),
+                          child: Text(
+                            trader.phone,
+                            style: const TextStyle(fontSize: 18),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ),
                       TableCell(
@@ -233,7 +237,7 @@ class TraderManagementView extends StatelessWidget {
                           child: Text(
                             hasSold ? 'Đã bán' : 'Chưa bán',
                             style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 16,
                                 color: hasSold ? Colors.green : Colors.red),
                           ),
                         ),
@@ -258,7 +262,7 @@ class TraderManagementView extends StatelessWidget {
                                 child: const Text('Sửa',
                                     style: TextStyle(
                                         color: AppColors.primaryColor,
-                                        fontSize: 16)),
+                                        fontSize: 18)),
                                 onPressed: () {
                                   showTraderForm(trader);
                                 },
@@ -278,7 +282,7 @@ class TraderManagementView extends StatelessWidget {
                                 child: const Text('Xóa',
                                     style: TextStyle(
                                         color: AppColors.errorColor,
-                                        fontSize: 16)),
+                                        fontSize: 18)),
                                 onPressed: () async {
                                   bool confirmed =
                                       await showConfirmationDialog();

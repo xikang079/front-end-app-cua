@@ -54,27 +54,36 @@ class DailySummaryDetailView extends StatelessWidget {
               ),
               const SizedBox(height: 8.0),
               Text(
-                'Tổng số tiền: ${formatCurrency(dailySummary.totalAmount)}',
-                style: const TextStyle(fontSize: 18),
+                'Tổng số tiền mua: ${formatCurrency(dailySummary.totalAmount)}',
+                style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red),
               ),
               const SizedBox(height: 8.0),
               Text(
-                'Tổng số ký: ${formatWeight(totalWeight)} kg',
-                style: const TextStyle(fontSize: 18),
+                'Tổng số kí: ${formatWeight(totalWeight)} kg',
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8.0),
               Text(
                 'Dự đoán số thùng: $estimatedCrates thùng',
-                style: const TextStyle(fontSize: 18),
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 16.0),
               Table(
                 border: TableBorder.all(color: Colors.black54, width: 1),
                 columnWidths: const {
-                  0: FlexColumnWidth(1),
-                  1: FlexColumnWidth(2),
+                  0: FlexColumnWidth(0.8),
+                  1: FlexColumnWidth(2.1),
                   2: FlexColumnWidth(1.5),
-                  3: FlexColumnWidth(2),
+                  3: FlexColumnWidth(2.5),
                 },
                 children: [
                   TableRow(
@@ -85,7 +94,7 @@ class DailySummaryDetailView extends StatelessWidget {
                           padding: EdgeInsets.all(8.0),
                           child: Text('STT',
                               style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                                  fontSize: 18, fontWeight: FontWeight.bold)),
                         ),
                       ),
                       TableCell(
@@ -93,7 +102,7 @@ class DailySummaryDetailView extends StatelessWidget {
                           padding: EdgeInsets.all(8.0),
                           child: Text('Loại cua',
                               style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                                  fontSize: 18, fontWeight: FontWeight.bold)),
                         ),
                       ),
                       TableCell(
@@ -101,7 +110,7 @@ class DailySummaryDetailView extends StatelessWidget {
                           padding: EdgeInsets.all(8.0),
                           child: Text('Số kí (Kg)',
                               style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                                  fontSize: 18, fontWeight: FontWeight.bold)),
                         ),
                       ),
                       TableCell(
@@ -109,7 +118,7 @@ class DailySummaryDetailView extends StatelessWidget {
                           padding: EdgeInsets.all(8.0),
                           child: Text('Tổng tiền',
                               style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                                  fontSize: 18, fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ],
@@ -125,28 +134,28 @@ class DailySummaryDetailView extends StatelessWidget {
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Text((index + 1).toString(),
-                                style: const TextStyle(fontSize: 15)),
+                                style: const TextStyle(fontSize: 18)),
                           ),
                         ),
                         TableCell(
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Text(crabTypeName,
-                                style: const TextStyle(fontSize: 16)),
+                                style: const TextStyle(fontSize: 22)),
                           ),
                         ),
                         TableCell(
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Text(formatWeight(detail.totalWeight),
-                                style: const TextStyle(fontSize: 16)),
+                                style: const TextStyle(fontSize: 22)),
                           ),
                         ),
                         TableCell(
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Text(formatCurrency(detail.totalCost),
-                                style: const TextStyle(fontSize: 15)),
+                                style: const TextStyle(fontSize: 18)),
                           ),
                         ),
                       ],

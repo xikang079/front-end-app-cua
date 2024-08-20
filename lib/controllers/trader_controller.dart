@@ -24,7 +24,6 @@ class TraderController extends GetxController {
       List<Trader> fetchedTraders = await apiServiceTrader.getAllTraders();
       traders.assignAll(fetchedTraders);
     } catch (e) {
-      print('Failed to fetch traders: $e');
       showSnackbar(
           'Lỗi', 'Không thể tải danh sách thương lái', AppColors.errorColor);
     } finally {

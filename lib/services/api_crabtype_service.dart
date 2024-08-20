@@ -28,15 +28,11 @@ class ApiServiceCrabType {
         return handler.next(response);
       },
       onError: (DioException error, handler) {
-        // print('Error: ${error.message}');
         if (error.type == DioExceptionType.connectionTimeout ||
             error.type == DioExceptionType.receiveTimeout ||
             error.type == DioExceptionType.sendTimeout ||
-            error.type == DioExceptionType.connectionError) {
-          // print('Connection error: ${error.message}');
-        }
-        // print('Error Response Data: ${error.response?.data}');
-        return handler.next(error); // continue
+            error.type == DioExceptionType.connectionError) {}
+        return handler.next(error);
       },
     ));
   }
@@ -46,19 +42,16 @@ class ApiServiceCrabType {
       Response response = await _dio.get('/');
       if (response.statusCode == 200) {
         var data = response.data['message']['metadata'];
-        // print(
-        //     'Response data: $data'); // Thêm dòng này để in ra dữ liệu phản hồi
+
         if (data != null && data is List) {
           return data.map((e) => CrabType.fromJson(e)).toList();
         } else {
-          // print('Invalid data format: $data');
           return [];
         }
       } else {
         return [];
       }
     } catch (e) {
-      // print('Failed to get crab types: $e');
       return [];
     }
   }
@@ -68,7 +61,6 @@ class ApiServiceCrabType {
       Response response = await _dio.post('/', data: crabType.toJson());
       return response.statusCode == 201;
     } catch (e) {
-      // print('Failed to create crab type: $e');
       return false;
     }
   }
@@ -78,7 +70,6 @@ class ApiServiceCrabType {
       Response response = await _dio.put('/$id', data: crabType.toJson());
       return response.statusCode == 200;
     } catch (e) {
-      // print('Failed to update crab type: $e');
       return false;
     }
   }
@@ -88,7 +79,6 @@ class ApiServiceCrabType {
       Response response = await _dio.delete('/$id');
       return response.statusCode == 200;
     } catch (e) {
-      // print('Failed to delete crab type: $e');
       return false;
     }
   }

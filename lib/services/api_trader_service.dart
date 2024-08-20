@@ -27,14 +27,10 @@ class ApiServiceTrader {
         return handler.next(response);
       },
       onError: (DioException error, handler) {
-        // print('Error: ${error.message}');
         if (error.type == DioExceptionType.connectionTimeout ||
             error.type == DioExceptionType.receiveTimeout ||
             error.type == DioExceptionType.sendTimeout ||
-            error.type == DioExceptionType.connectionError) {
-          // print('Connection error: ${error.message}');
-        }
-        // print('Error Response Data: ${error.response?.data}');
+            error.type == DioExceptionType.connectionError) {}
         return handler.next(error);
       },
     ));
@@ -48,14 +44,12 @@ class ApiServiceTrader {
         if (data != null && data is List) {
           return data.map((e) => Trader.fromJson(e)).toList();
         } else {
-          // print('Invalid data format: $data');
           return [];
         }
       } else {
         return [];
       }
     } catch (e) {
-      // print('Failed to get traders: $e');
       return [];
     }
   }
@@ -65,7 +59,6 @@ class ApiServiceTrader {
       Response response = await _dio.post('/', data: trader.toJson());
       return response.statusCode == 201;
     } catch (e) {
-      // print('Failed to create trader: $e');
       return false;
     }
   }
@@ -75,7 +68,6 @@ class ApiServiceTrader {
       Response response = await _dio.put('/$id', data: trader.toJson());
       return response.statusCode == 200;
     } catch (e) {
-      // print('Failed to update trader: $e');
       return false;
     }
   }
@@ -85,7 +77,6 @@ class ApiServiceTrader {
       Response response = await _dio.delete('/$id');
       return response.statusCode == 200;
     } catch (e) {
-      // print('Failed to delete trader: $e');
       return false;
     }
   }

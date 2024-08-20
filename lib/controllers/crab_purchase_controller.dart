@@ -79,7 +79,6 @@ class CrabPurchaseController extends GetxController {
         );
       }
     } catch (e) {
-      print('Không thể lấy hoá đơn mua cua theo ngày: $e');
       Get.snackbar(
         'Lỗi',
         'Không thể lấy hoá đơn mua cua',
@@ -110,7 +109,6 @@ class CrabPurchaseController extends GetxController {
         );
       }
     } catch (e) {
-      print('Không thể lấy hoá đơn mua cua theo ngày: $e');
       Get.snackbar(
         'Lỗi',
         'Không thể lấy hoá đơn mua cua',
@@ -285,8 +283,6 @@ class CrabPurchaseController extends GetxController {
         }
       }
     } catch (e) {
-      print(
-          'Exception when creating daily summary: $e'); // Debugging print statement
       Get.snackbar(
         'Lỗi',
         'Tạo báo cáo tổng hợp trong ngày thất bại',

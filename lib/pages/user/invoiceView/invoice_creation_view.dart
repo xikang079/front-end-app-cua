@@ -308,10 +308,10 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                     border: TableBorder.all(color: Colors.black54, width: 1),
                     columnWidths: const {
                       0: FlexColumnWidth(2),
-                      1: FlexColumnWidth(1.5),
-                      2: FlexColumnWidth(1),
-                      3: FlexColumnWidth(2),
-                      4: FlexColumnWidth(2),
+                      1: FlexColumnWidth(1.4),
+                      2: FlexColumnWidth(1.1),
+                      3: FlexColumnWidth(1.9),
+                      4: FlexColumnWidth(1.7),
                     },
                     children: [
                       TableRow(
@@ -324,7 +324,7 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                                 child: Text(
                                   'Loại cua',
                                   style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 20,
                                       fontWeight: FontWeight.bold),
                                 ),
                               ),
@@ -337,7 +337,7 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                                 child: Text(
                                   'Số kí',
                                   style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 20,
                                       fontWeight: FontWeight.bold),
                                 ),
                               ),
@@ -350,7 +350,7 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                                 child: Text(
                                   'Giá',
                                   style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 20,
                                       fontWeight: FontWeight.bold),
                                 ),
                               ),
@@ -363,7 +363,7 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                                 child: Text(
                                   'Tổng',
                                   style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 20,
                                       fontWeight: FontWeight.bold),
                                 ),
                               ),
@@ -376,7 +376,7 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                                 child: Text(
                                   'Thêm',
                                   style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 20,
                                       fontWeight: FontWeight.bold),
                                 ),
                               ),
@@ -396,9 +396,9 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                                   child: Text(
                                     crabDetail.crabType.name,
                                     style: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                        fontSize: 20.25,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.red),
                                   ),
                                 ),
                               ),
@@ -410,7 +410,9 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                                   child: TextField(
                                     controller: weightControllers[index],
                                     decoration: const InputDecoration(
-                                      labelStyle: TextStyle(fontSize: 18),
+                                      labelStyle: TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold),
                                     ),
                                     keyboardType: TextInputType.number,
                                     onChanged: (value) {
@@ -443,22 +445,23 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                                   child: Text(
                                     formatShortenNumberWithoutSymbol(
                                         crabDetail.pricePerKg),
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blue.shade900),
                                   ),
                                 ),
                               ),
                             ),
                             TableCell(
                               child: Padding(
-                                padding: const EdgeInsets.all(8.0),
+                                padding: const EdgeInsets.only(
+                                    left: 8, right: 8, top: 16),
                                 child: Center(
                                   child: Text(
                                     formatNumberWithoutSymbol(
                                         crabDetail.totalCost),
-                                    style: const TextStyle(fontSize: 16),
+                                    style: const TextStyle(fontSize: 15),
                                   ),
                                 ),
                               ),
@@ -470,12 +473,19 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     IconButton(
-                                      icon: const Icon(Icons.add_box),
+                                      icon: const Icon(
+                                        Icons.add_box,
+                                        size: 30,
+                                      ),
                                       onPressed: () => _addCrate(index),
                                     ),
-                                    Checkbox(
-                                      value: tareControllers[index],
-                                      onChanged: (value) => _toggleTare(index),
+                                    Transform.scale(
+                                      scale: 1.5,
+                                      child: Checkbox(
+                                        value: tareControllers[index],
+                                        onChanged: (value) =>
+                                            _toggleTare(index),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -503,8 +513,11 @@ class _InvoiceCreationViewState extends State<InvoiceCreationView> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Tổng: ${formatCurrency(crabDetails.fold(0, (sum, item) => sum + item.totalCost))}',
-                        style: const TextStyle(fontSize: 18),
+                        'Tổng cộng: ${formatCurrency(crabDetails.fold(0, (sum, item) => sum + item.totalCost))}',
+                        style: const TextStyle(
+                            fontSize: 19,
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold),
                       ),
                       TextButton.icon(
                         onPressed: _onSubmitInvoice,

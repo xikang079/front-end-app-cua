@@ -16,24 +16,16 @@ class ApiService {
         ) {
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
-        // print('Request: ${options.method} ${options.path}');
-        // print('Request Data: ${options.data}');
         return handler.next(options); // continue
       },
       onResponse: (response, handler) {
-        // print('Response: ${response.statusCode} ${response.statusMessage}');
-        // print('Response Data: ${response.data}');
         return handler.next(response); // continue
       },
       onError: (DioException error, handler) {
-        // print('Error: ${error.message}');
         if (error.type == DioExceptionType.connectionTimeout ||
             error.type == DioExceptionType.receiveTimeout ||
             error.type == DioExceptionType.sendTimeout ||
-            error.type == DioExceptionType.connectionError) {
-          // print('Connection error: ${error.message}');
-        }
-        // print('Error Response Data: ${error.response?.data}');
+            error.type == DioExceptionType.connectionError) {}
         return handler.next(error); // continue
       },
     ));
@@ -53,11 +45,9 @@ class ApiService {
         user.refreshToken = data['refreshToken'];
         return user;
       } else {
-        // print('Login failed with status: ${response.statusCode}');
         return null;
       }
     } catch (e) {
-      print('Login failed: $e');
       return null;
     }
   }
@@ -76,7 +66,6 @@ class ApiService {
 
       return response.statusCode == 200;
     } catch (e) {
-      // print('Token validation failed: $e');
       return false;
     }
   }
@@ -96,11 +85,9 @@ class ApiService {
       if (response.statusCode == 200) {
         return User.fromJson(response.data['message']['metadata']);
       } else {
-        // print('Fetch user details failed with status: ${response.statusCode}');
         return null;
       }
     } catch (e) {
-      // print('Fetching user details failed: $e');
       return null;
     }
   }

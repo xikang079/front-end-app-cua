@@ -24,9 +24,9 @@ String formatWeightInput(String input) {
 
 String removeDiacritics(String str) {
   var withDia =
-      'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ';
+      'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđĐ';
   var withoutDia =
-      'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyd';
+      'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyydD';
   for (int i = 0; i < withDia.length; i++) {
     str = str.replaceAll(withDia[i], withoutDia[i]);
   }
@@ -42,7 +42,6 @@ String removeDiacriticsUppercase(String str) {
 
   for (int i = 0; i < withDia.length; i++) {
     if (i >= withoutDia.length) {
-      print("Lỗi tại index: $i, withDia: ${withDia[i]}");
       break;
     }
     str = str.replaceAll(withDia[i], withoutDia[i]);

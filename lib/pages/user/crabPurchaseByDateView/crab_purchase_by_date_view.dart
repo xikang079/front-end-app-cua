@@ -89,6 +89,8 @@ class _CrabPurchasesByDateViewState extends State<CrabPurchasesByDateView> {
                   itemBuilder: (context, index) {
                     final crabPurchase =
                         _crabPurchaseController.crabPurchases[index];
+                    double totalWeight = crabPurchase.crabs.fold(
+                        0.0, (sum, crabDetail) => sum + crabDetail.weight);
                     return AnimationConfiguration.staggeredList(
                       position: index,
                       duration: const Duration(milliseconds: 375),
@@ -111,8 +113,47 @@ class _CrabPurchasesByDateViewState extends State<CrabPurchasesByDateView> {
                                 child: ExpansionTile(
                                   title: Text(
                                       'Thương lái: ${crabPurchase.trader.name}'),
-                                  subtitle: Text(
-                                      'Tổng số tiền: ${formatCurrency(crabPurchase.totalCost)}'),
+                                  subtitle: Padding(
+                                    padding: const EdgeInsets.all(2.0),
+                                    child: RichText(
+                                      text: TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Tổng tiền: ',
+                                            style: TextStyle(
+                                                fontSize: 20,
+                                                color: Colors.black),
+                                          ),
+                                          TextSpan(
+                                            text: formatCurrency(
+                                                crabPurchase.totalCost),
+                                            style: const TextStyle(
+                                              fontSize: 20,
+                                              color: Colors
+                                                  .red, // Màu đỏ cho số tiền
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const TextSpan(
+                                            text: '  Tổng kí: ',
+                                            style: TextStyle(
+                                                fontSize: 20,
+                                                color: Colors.black),
+                                          ),
+                                          TextSpan(
+                                            text:
+                                                '${formatWeight(totalWeight)} Kg',
+                                            style: const TextStyle(
+                                              fontSize: 20,
+                                              color: Colors
+                                                  .red, // Màu đỏ cho số ký
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
                                   children: [
                                     SingleChildScrollView(
                                       scrollDirection: Axis.horizontal,

@@ -28,7 +28,6 @@ class ApiServiceCrabPurchase {
         return handler.next(response);
       },
       onError: (DioException error, handler) {
-        // print('Error: ${error.message}');
         return handler.next(error);
       },
     ));
@@ -46,16 +45,12 @@ class ApiServiceCrabPurchase {
         if (data != null && data is List) {
           return data.map((e) => CrabPurchase.fromJson(e)).toList();
         } else {
-          // print('Invalid data format: $data');
           return [];
         }
       } else {
-        // print(
-        //     'Failed to get crab purchases, status code: ${response.statusCode}');
         return [];
       }
     } catch (e) {
-      // print('Failed to get crab purchases: $e');
       return [];
     }
   }
@@ -70,7 +65,7 @@ class ApiServiceCrabPurchase {
       );
       if (response.statusCode == 200) {
         var data = response.data['message']['metadata'];
-        print('Fetched data from API: $data'); // Add this line for debugging
+
         if (data != null && data is List) {
           return data.map((e) => CrabPurchase.fromJson(e)).toList();
         } else {
@@ -80,7 +75,6 @@ class ApiServiceCrabPurchase {
         return [];
       }
     } catch (e) {
-      print('Failed to fetch data: $e'); // Add this line for debugging
       return [];
     }
   }
@@ -112,12 +106,9 @@ class ApiServiceCrabPurchase {
       if (response.statusCode == 201) {
         return true;
       } else {
-        // print(
-        //     'Failed to create crab purchase, status code: ${response.statusCode}');
         return false;
       }
     } catch (e) {
-      // print('Failed to create crab purchase: $e');
       return false;
     }
   }
@@ -128,12 +119,9 @@ class ApiServiceCrabPurchase {
       if (response.statusCode == 200) {
         return true;
       } else {
-        // print(
-        //     'Failed to update crab purchase, status code: ${response.statusCode}');
         return false;
       }
     } catch (e) {
-      // print('Failed to update crab purchase: $e');
       return false;
     }
   }
@@ -144,12 +132,9 @@ class ApiServiceCrabPurchase {
       if (response.statusCode == 200) {
         return true;
       } else {
-        // print(
-        //     'Failed to delete crab purchase, status code: ${response.statusCode}');
         return false;
       }
     } catch (e) {
-      // print('Failed to delete crab purchase: $e');
       return false;
     }
   }

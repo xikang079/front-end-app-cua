@@ -11,12 +11,12 @@ class CrabAndSummaryView extends StatefulWidget {
 }
 
 class _CrabAndSummaryViewState extends State<CrabAndSummaryView> {
-  late int _currentIndex;
+  late int currentIndex;
 
   @override
   void initState() {
     super.initState();
-    _currentIndex = 0;
+    currentIndex = 0;
   }
 
   @override
@@ -60,7 +60,7 @@ class _CrabAndSummaryViewState extends State<CrabAndSummaryView> {
                 onTabControllerUpdated: (controller) {},
                 onTabChanged: (index) {
                   setState(() {
-                    _currentIndex = index!;
+                    currentIndex = index!;
                   });
                 },
                 onAddTabMoveTo: MoveToTab.last,
