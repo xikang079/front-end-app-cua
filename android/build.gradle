@@ -13,6 +13,23 @@ subprojects {
     project.evaluationDependsOn(':app')
 }
 
+subprojects { subproject ->
+    subproject.plugins.withId("com.android.library") {
+        def androidExt = subproject.extensions.findByName("android")
+        if (androidExt != null && androidExt.hasProperty("namespace") && !androidExt.namespace) {
+            def manifestPackage = null
+            def manifestFile = subproject.file("src/main/AndroidManifest.xml")
+            if (manifestFile.exists()) {
+                manifestPackage = new XmlSlurper().parse(manifestFile)."@package"?.text()
+            }
+            def fallbackNamespace = manifestPackage ?: subproject.group?.toString()
+            if (fallbackNamespace) {
+                androidExt.namespace = fallbackNamespace
+            }
+        }
+    }
+}
+
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
