@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sticky_headers/sticky_headers.dart';
 import 'package:shimmer/shimmer.dart';
-// import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 import '../../../apps/config/app_colors.dart';
 import '../../../apps/config/format_vnd.dart';
@@ -15,23 +14,26 @@ class CrabTypeManagementView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final CrabTypeController crabTypeController = Get.put(CrabTypeController());
+    // Nếu đã put ở nơi khác (main/home), dùng Get.find; nếu chưa, Get.put sẽ khởi tạo.
+    final crabTypeController = Get.isRegistered<CrabTypeController>()
+        ? Get.find<CrabTypeController>()
+        : Get.put(CrabTypeController());
 
     void showCrabTypeForm([CrabType? crabType]) {
-      TextEditingController nameController =
-          TextEditingController(text: crabType?.name ?? '');
-      TextEditingController priceController = TextEditingController(
-          text: crabType != null
-              ? formatInputCurrency(crabType.pricePerKg.toString())
-              : '');
+      final nameController = TextEditingController(text: crabType?.name ?? '');
+      final priceController = TextEditingController(
+        text: crabType != null
+            ? formatInputCurrency(crabType.pricePerKg.toString())
+            : '',
+      );
 
       priceController.addListener(() {
-        String value = priceController.text.replaceAll(',', '');
-        if (value.isNotEmpty) {
+        final raw = priceController.text.replaceAll(',', '');
+        if (raw.isNotEmpty) {
+          final formatted = formatInputCurrency(raw);
           priceController.value = priceController.value.copyWith(
-            text: formatInputCurrency(value),
-            selection: TextSelection.collapsed(
-                offset: formatInputCurrency(value).length),
+            text: formatted,
+            selection: TextSelection.collapsed(offset: formatted.length),
           );
         }
       });
@@ -40,9 +42,14 @@ class CrabTypeManagementView extends StatelessWidget {
         context: context,
         builder: (context) {
           return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             title: Text(
               crabType == null ? 'Thêm loại cua' : 'Sửa loại cua',
-              style: const TextStyle(color: AppColors.primaryColor),
+              style: const TextStyle(
+                color: AppColors.primaryColor,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -51,17 +58,16 @@ class CrabTypeManagementView extends StatelessWidget {
                   controller: nameController,
                   decoration: const InputDecoration(
                     labelText: 'Tên loại cua',
-                    labelStyle: TextStyle(color: AppColors.textColor),
                     focusedBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: AppColors.primaryColor),
                     ),
                   ),
                 ),
+                const SizedBox(height: 12),
                 TextField(
                   controller: priceController,
                   decoration: const InputDecoration(
                     labelText: 'Giá theo kg',
-                    labelStyle: TextStyle(color: AppColors.textColor),
                     focusedBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: AppColors.primaryColor),
                     ),
@@ -77,30 +83,34 @@ class CrabTypeManagementView extends StatelessWidget {
               ),
               ElevatedButton(
                 onPressed: () {
-                  if (nameController.text.isNotEmpty &&
-                      priceController.text.isNotEmpty) {
-                    CrabType newCrabType = CrabType(
-                      id: crabType?.id ?? '',
-                      name: nameController.text.toUpperCase(),
-                      pricePerKg: double.parse(
-                          priceController.text.replaceAll(',', '')),
-                      createdAt: DateTime.now(),
-                    );
-                    if (crabType == null) {
-                      crabTypeController.createCrabType(newCrabType);
-                    } else {
-                      crabTypeController.updateCrabType(
-                          crabType.id, newCrabType);
-                    }
-                    Navigator.of(context).pop();
-                  } else {
+                  if (nameController.text.isEmpty ||
+                      priceController.text.isEmpty) {
                     crabTypeController.showSnackbar(
                       'Lỗi',
                       'Vui lòng nhập đầy đủ thông tin',
                       AppColors.errorColor,
                     );
+                    return;
                   }
+                  final model = CrabType(
+                    id: crabType?.id ?? '',
+                    name: nameController.text.toUpperCase(),
+                    pricePerKg: double.parse(
+                      priceController.text.replaceAll(',', ''),
+                    ),
+                    createdAt: DateTime.now(),
+                  );
+                  if (crabType == null) {
+                    crabTypeController.createCrabType(model);
+                  } else {
+                    crabTypeController.updateCrabType(crabType.id, model);
+                  }
+                  Navigator.of(context).pop();
                 },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  foregroundColor: Colors.white,
+                ),
                 child: const Text('Lưu'),
               ),
             ],
@@ -121,27 +131,198 @@ class CrabTypeManagementView extends StatelessWidget {
           false;
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Quản lí loại cua',
-          style: TextStyle(
-            color: Colors.white,
-          ),
+    Widget buildHeaderBar() {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: Colors.black12),
+          borderRadius: BorderRadius.circular(12),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.refresh,
-              color: Colors.white,
-              size: 30,
+        child: Obx(() {
+          final total = crabTypeController.crabTypes.length;
+          final selected = crabTypeController.selectedCrabTypesTemp.length;
+          return Row(
+            children: [
+              const Icon(Icons.info_outline, color: AppColors.primaryColor),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Chọn theo thứ tự bấm để sắp xếp khi tạo hóa đơn.\n'
+                  'Đã chọn: $selected / $total',
+                  style: const TextStyle(
+                    height: 1.25,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.orange),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: crabTypeController.clearTempSelection,
+                icon: const Icon(
+                  Icons.clear_all,
+                  color: Colors.orange,
+                ),
+                label: const Text(
+                  'Bỏ chọn hết',
+                  style: TextStyle(
+                    color: Colors.orange,
+                  ),
+                ),
+              ),
+            ],
+          );
+        }),
+      );
+    }
+
+    Widget buildSelectedPreviewChips() {
+      return Obx(() {
+        final ordered = crabTypeController.selectedCrabTypesTemp;
+        if (ordered.isEmpty) return const SizedBox.shrink();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 10),
+            const Text(
+              'Thứ tự đã chọn (tạm):',
+              style: TextStyle(fontWeight: FontWeight.w700),
             ),
-            onPressed: () {
-              crabTypeController.fetchCrabTypes();
-            },
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: List.generate(ordered.length, (i) {
+                final ct = ordered[i];
+                return Chip(
+                  label: Text('${i + 1}. ${ct.name ?? ''}'),
+                  backgroundColor: Colors.grey.shade200,
+                );
+              }),
+            ),
+          ],
+        );
+      });
+    }
+
+    TableRow buildTableHeaderRow() {
+      Widget cell(String text) => Container(
+            padding: const EdgeInsets.all(10),
+            color: Colors.grey[200],
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+            ),
+          );
+
+      return TableRow(
+        children: [
+          cell('Tên loại cua'),
+          cell('Giá cua/KG'),
+          cell('Chọn'),
+          cell('Hành động'),
+        ],
+      );
+    }
+
+    TableRow buildCrabTypeRow(CrabType crabType) {
+      return TableRow(
+        decoration: const BoxDecoration(color: Colors.white),
+        children: [
+          _td(Text(
+            crabType.name ?? '(Không tên)',
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+          )),
+          _td(Text(
+            formatNumberWithoutSymbol(crabType.pricePerKg),
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+          )),
+          _td(
+            Center(
+              child: Obx(() {
+                final checked = crabTypeController.isTempSelected(crabType.id);
+                return Transform.scale(
+                  scale: 1.4,
+                  child: Checkbox(
+                    value: checked,
+                    onChanged: (_) =>
+                        crabTypeController.toggleTempSelection(crabType),
+                    activeColor: AppColors.primaryColor,
+                    checkColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+          _td(
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.primaryColor),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () => showCrabTypeForm(crabType),
+                  child: const Text(
+                    'Sửa',
+                    style:
+                        TextStyle(color: AppColors.primaryColor, fontSize: 18),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.errorColor),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () async {
+                    final confirmed = await showConfirmationDialog(() {
+                      crabTypeController.deleteCrabType(crabType.id);
+                    });
+                    if (confirmed) {
+                      // Đã gọi xóa trong onConfirm của dialog
+                    }
+                  },
+                  child: const Text(
+                    'Xóa',
+                    style: TextStyle(color: AppColors.errorColor, fontSize: 18),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: AppColors.backgroundColor,
+      appBar: AppBar(
+        title: const Text('Quản lí loại cua',
+            style: TextStyle(color: Colors.white)),
         backgroundColor: AppColors.primaryColor,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            onPressed: crabTypeController.fetchCrabTypes,
+            tooltip: 'Tải lại',
+          ),
+        ],
       ),
       body: Obx(() {
         if (crabTypeController.isLoading.value) {
@@ -150,233 +331,142 @@ class CrabTypeManagementView extends StatelessWidget {
         if (crabTypeController.crabTypes.isEmpty) {
           return const Center(child: Text('Không có loại cua nào'));
         }
+
         return SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: StickyHeader(
-              header: Table(
-                border: TableBorder.all(color: Colors.black54, width: 1),
-                columnWidths: const {
-                  0: FlexColumnWidth(2.3),
-                  1: FlexColumnWidth(1.8),
-                  2: FlexColumnWidth(1),
-                  3: FlexColumnWidth(2),
-                },
-                children: [
-                  TableRow(
-                    decoration: BoxDecoration(color: Colors.grey[300]),
-                    children: const [
-                      TableCell(
-                        child: Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text('Tên loại cua',
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                      TableCell(
-                        child: Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text('Giá cua',
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                      TableCell(
-                        child: Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text('Chọn',
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                      TableCell(
-                        child: Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text('Hành động',
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                    ],
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              buildHeaderBar(),
+              buildSelectedPreviewChips(),
+              const SizedBox(height: 12),
+
+              // Sticky header cho bảng
+              StickyHeader(
+                header: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    border: Border.all(color: Colors.black26, width: 1),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(8),
+                    ),
                   ),
-                ],
+                  child: Table(
+                    columnWidths: const {
+                      0: FlexColumnWidth(2.5),
+                      1: FlexColumnWidth(2.8),
+                      2: FlexColumnWidth(1.5),
+                      3: FlexColumnWidth(3.5),
+                    },
+                    border: const TableBorder(
+                      horizontalInside:
+                          BorderSide(color: Colors.black26, width: 0.5),
+                      verticalInside:
+                          BorderSide(color: Colors.black26, width: 0.5),
+                      top: BorderSide(color: Colors.black26, width: 1),
+                      left: BorderSide(color: Colors.black26, width: 1),
+                      right: BorderSide(color: Colors.black26, width: 1),
+                    ),
+                    children: [buildTableHeaderRow()],
+                  ),
+                ),
+                content: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.black26, width: 1),
+                    borderRadius: const BorderRadius.vertical(
+                      bottom: Radius.circular(8),
+                    ),
+                  ),
+                  child: Table(
+                    columnWidths: const {
+                      0: FlexColumnWidth(2.5),
+                      1: FlexColumnWidth(2.8),
+                      2: FlexColumnWidth(1.5),
+                      3: FlexColumnWidth(3.5),
+                    },
+                    border: const TableBorder(
+                      horizontalInside:
+                          BorderSide(color: Colors.black12, width: 0.5),
+                      verticalInside:
+                          BorderSide(color: Colors.black12, width: 0.5),
+                    ),
+                    children: crabTypeController.crabTypes
+                        .map(buildCrabTypeRow)
+                        .toList(),
+                  ),
+                ),
               ),
-              content: Table(
-                border: TableBorder.all(color: Colors.black54, width: 1),
-                columnWidths: const {
-                  0: FlexColumnWidth(2.3),
-                  1: FlexColumnWidth(1.8),
-                  2: FlexColumnWidth(1),
-                  3: FlexColumnWidth(2),
-                },
-                children: crabTypeController.crabTypes.map((crabType) {
-                  final isSelected = crabTypeController.selectedCrabTypesTemp
-                      .any((selected) => selected.id == crabType.id);
-                  return TableRow(
-                    children: [
-                      TableCell(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Text(crabType.name,
-                              style: const TextStyle(fontSize: 27)),
-                        ),
-                      ),
-                      TableCell(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                              formatNumberWithoutSymbol(crabType.pricePerKg),
-                              style: const TextStyle(fontSize: 22)),
-                        ),
-                      ),
-                      TableCell(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Transform.scale(
-                            scale: 2,
-                            child: Checkbox(
-                              value: isSelected,
-                              onChanged: (value) {
-                                if (isSelected) {
-                                  crabTypeController.selectedCrabTypesTemp
-                                      .removeWhere((selected) =>
-                                          selected.id == crabType.id);
-                                } else {
-                                  crabTypeController.selectedCrabTypesTemp
-                                      .add(crabType);
-                                }
-                              },
-                              activeColor: Colors.green,
-                              checkColor: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                      TableCell(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  side: const BorderSide(
-                                      color: AppColors.primaryColor, width: 2),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 6),
-                                ),
-                                child: const Text(
-                                  'Sửa',
-                                  style: TextStyle(
-                                    color: AppColors.primaryColor,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                onPressed: () {
-                                  showCrabTypeForm(crabType);
-                                },
-                              ),
-                              const SizedBox(width: 8),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  side: const BorderSide(
-                                      color: AppColors.errorColor, width: 2),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 6),
-                                ),
-                                child: const Text(
-                                  'Xóa',
-                                  style: TextStyle(
-                                    color: AppColors.errorColor,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                onPressed: () async {
-                                  bool confirmed =
-                                      await showConfirmationDialog(() {
-                                    crabTypeController
-                                        .deleteCrabType(crabType.id);
-                                  });
-                                  if (confirmed) {
-                                    // crabTypeController.deleteCrabType(crabType.id);
-                                  }
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                }).toList(),
-              ),
-            ),
+              const SizedBox(height: 50), // chừa chỗ cho bottom bar
+            ],
           ),
         );
       }),
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.white,
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Expanded(
-              child: TextButton.icon(
-                onPressed: () {
-                  crabTypeController.saveSelectedCrabTypesForToday();
-                },
-                icon: const Icon(Icons.save, color: Colors.green),
-                label: const Text(
-                  'Lưu cua trong ngày',
-                  style: TextStyle(color: Colors.green),
-                ),
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                  shape: RoundedRectangleBorder(
-                    side: const BorderSide(color: Colors.grey, width: 3),
-                    borderRadius: BorderRadius.circular(8.0),
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: const Border(
+              top: BorderSide(color: Colors.black12, width: 1),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 8,
+                offset: const Offset(0, -2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: crabTypeController.saveSelectedCrabTypesForToday,
+                  icon: const Icon(Icons.save),
+                  label: const Text('Lưu cua trong ngày'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade600,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
               ),
-            ),
-            Container(
-              width: 20,
-            ),
-            Expanded(
-              child: TextButton.icon(
-                onPressed: () => showCrabTypeForm(),
-                icon: const Icon(Icons.add, color: AppColors.primaryColor),
-                label: const Text(
-                  'Thêm cua mới',
-                  style: TextStyle(color: AppColors.primaryColor),
-                ),
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                  shape: RoundedRectangleBorder(
-                    side: const BorderSide(color: Colors.grey, width: 3),
-                    borderRadius: BorderRadius.circular(8.0),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => showCrabTypeForm(),
+                  icon: const Icon(Icons.add, color: AppColors.primaryColor),
+                  label: const Text(
+                    'Thêm cua mới',
+                    style: TextStyle(color: AppColors.primaryColor),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(
+                        color: AppColors.primaryColor, width: 2),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    backgroundColor: Colors.white,
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      backgroundColor: AppColors.backgroundColor,
+    );
+  }
+
+  // ===== Helpers =====
+
+  Widget _td(Widget child) {
+    return Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: Align(alignment: Alignment.centerLeft, child: child),
     );
   }
 
@@ -384,21 +474,17 @@ class CrabTypeManagementView extends StatelessWidget {
     return Shimmer.fromColors(
       baseColor: Colors.grey[300]!,
       highlightColor: Colors.grey[100]!,
-      child: ListView.builder(
+      child: ListView.separated(
+        padding: const EdgeInsets.all(12),
         itemCount: 10,
+        separatorBuilder: (_, __) => const SizedBox(height: 8),
         itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-            child: Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-                side: const BorderSide(color: Colors.grey, width: 1),
-              ),
-              child: const ListTile(
-                title: Text(''),
-                subtitle: Text(''),
-              ),
+          return Container(
+            height: 64,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10.0),
+              border: Border.all(color: Colors.black12),
             ),
           );
         },

@@ -14,21 +14,33 @@ class TraderManagementView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TraderController traderController = Get.put(TraderController());
-    final CrabPurchaseController crabPurchaseController =
-        Get.put(CrabPurchaseController());
+    // Giữ cách dùng controller giống trang Loại cua: đơn giản, an toàn
+    final traderController = Get.isRegistered<TraderController>()
+        ? Get.find<TraderController>()
+        : Get.put(TraderController());
 
+    final crabPurchaseController = Get.isRegistered<CrabPurchaseController>()
+        ? Get.find<CrabPurchaseController>()
+        : Get.put(CrabPurchaseController());
+
+    // ====== FORM THÊM / SỬA ======
     void showTraderForm([Trader? trader]) {
-      TextEditingController nameController =
-          TextEditingController(text: trader?.name ?? '');
-      TextEditingController phoneController =
-          TextEditingController(text: trader?.phone ?? '');
+      final nameController = TextEditingController(text: trader?.name ?? '');
+      final phoneController = TextEditingController(text: trader?.phone ?? '');
+
       showDialog(
         context: context,
-        builder: (context) {
+        builder: (_) {
           return AlertDialog(
-            title: Text(trader == null ? 'Thêm thương lái' : 'Sửa thương lái',
-                style: const TextStyle(color: AppColors.primaryColor)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            title: Text(
+              trader == null ? 'Thêm thương lái' : 'Sửa thương lái',
+              style: const TextStyle(
+                color: AppColors.primaryColor,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -36,17 +48,16 @@ class TraderManagementView extends StatelessWidget {
                   controller: nameController,
                   decoration: const InputDecoration(
                     labelText: 'Tên lái',
-                    labelStyle: TextStyle(color: AppColors.textColor),
                     focusedBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: AppColors.primaryColor),
                     ),
                   ),
                 ),
+                const SizedBox(height: 12),
                 TextField(
                   controller: phoneController,
                   decoration: const InputDecoration(
-                    labelText: 'SĐT Lái',
-                    labelStyle: TextStyle(color: AppColors.textColor),
+                    labelText: 'SĐT ',
                     focusedBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: AppColors.primaryColor),
                     ),
@@ -61,24 +72,33 @@ class TraderManagementView extends StatelessWidget {
                 child: const Text('Hủy'),
               ),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: () {
-                  if (nameController.text.isNotEmpty &&
-                      phoneController.text.isNotEmpty) {
-                    Trader newTrader = Trader(
-                      id: trader?.id ?? '',
-                      name: nameController.text,
-                      phone: phoneController.text,
+                  if (nameController.text.isEmpty ||
+                      phoneController.text.isEmpty) {
+                    traderController.showSnackbar(
+                      'Lỗi',
+                      'Vui lòng nhập đầy đủ thông tin',
+                      AppColors.errorColor,
                     );
-                    if (trader == null) {
-                      traderController.createTrader(newTrader);
-                    } else {
-                      traderController.updateTrader(trader.id, newTrader);
-                    }
-                    Navigator.of(context).pop();
-                  } else {
-                    traderController.showSnackbar('Lỗi',
-                        'Vui lòng nhập đầy đủ thông tin', AppColors.errorColor);
+                    return;
                   }
+
+                  final model = Trader(
+                    id: trader?.id ?? '',
+                    name: nameController.text,
+                    phone: phoneController.text,
+                  );
+
+                  if (trader == null) {
+                    traderController.createTrader(model);
+                  } else {
+                    traderController.updateTrader(trader.id, model);
+                  }
+                  Navigator.of(context).pop();
                 },
                 child: const Text('Lưu'),
               ),
@@ -88,36 +108,193 @@ class TraderManagementView extends StatelessWidget {
       );
     }
 
-    Future<bool> showConfirmationDialog() async {
+    Future<bool> showDeleteConfirm(VoidCallback onConfirm) async {
       return await showDialog(
             context: context,
-            builder: (context) => ConfirmationDialog(
+            builder: (_) => ConfirmationDialog(
               title: 'Xác nhận',
               content: 'Bạn có chắc chắn muốn xóa thương lái này không?',
-              onConfirm: () {
-                // Navigator.of(context).pop(true);
-              },
+              onConfirm: onConfirm,
             ),
           ) ??
           false;
     }
 
+    // ====== HEADER NHẸ NHÀNG ======
+    Widget buildHeaderBar() {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: Colors.black12),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.people_alt, color: AppColors.primaryColor),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Danh sách thương lái',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            // OutlinedButton.icon(
+            //   onPressed: () => showTraderForm(),
+            //   icon: const Icon(Icons.add, color: AppColors.primaryColor),
+            //   label: const Text(
+            //     'Thêm lái',
+            //     style: TextStyle(color: AppColors.primaryColor),
+            //   ),
+            //   style: OutlinedButton.styleFrom(
+            //     side: const BorderSide(color: AppColors.primaryColor, width: 2),
+            //     shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(10)),
+            //   ),
+            // ),
+          ],
+        ),
+      );
+    }
+
+    // ====== TABLE HEADER/CELL ======
+    TableRow buildTableHeaderRow() {
+      Widget cell(String text, {TextAlign align = TextAlign.left}) => Container(
+            padding: const EdgeInsets.all(10),
+            color: Colors.grey[200],
+            child: Text(
+              text,
+              textAlign: align,
+              softWrap: false,
+              overflow: TextOverflow.fade,
+              style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+            ),
+          );
+
+      return TableRow(
+        children: [
+          cell('STT', align: TextAlign.center),
+          cell('Tên lái'),
+          cell('SĐT'),
+          cell('Trạng thái', align: TextAlign.center),
+          cell('Hành động', align: TextAlign.center),
+        ],
+      );
+    }
+
+    TableRow buildTraderRow(int index, Trader trader) {
+      final hasSold = crabPurchaseController.hasSoldCrabs(trader.id);
+
+      return TableRow(
+        decoration: const BoxDecoration(color: Colors.white),
+        children: [
+          _td(
+            Text(
+              '${index + 1}',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+            align: Alignment.center,
+          ),
+          _td(
+            Text(
+              trader.name,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+          ),
+          _td(
+            Text(
+              trader.phone,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: Center(
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+                decoration: BoxDecoration(
+                  color: hasSold ? Colors.green[50] : Colors.red[50],
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: hasSold ? Colors.green : Colors.red,
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  hasSold ? 'Đã bán' : 'Chưa bán',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: hasSold ? Colors.green[800] : Colors.red[800],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.primaryColor),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () => showTraderForm(trader),
+                  child: const Text(
+                    'Sửa',
+                    style: TextStyle(color: AppColors.primaryColor),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.errorColor),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () async {
+                    final ok = await showDeleteConfirm(() {
+                      traderController.deleteTrader(trader.id);
+                    });
+                    if (ok) {}
+                  },
+                  child: const Text(
+                    'Xóa',
+                    style: TextStyle(color: AppColors.errorColor),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
     return Scaffold(
+      backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
         title: const Text('Quản lí thương lái',
             style: TextStyle(color: Colors.white)),
         backgroundColor: AppColors.primaryColor,
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.refresh,
-              color: Colors.white,
-              size: 30,
-            ),
+            tooltip: 'Tải lại',
+            icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: () {
               traderController.fetchTraders();
-              crabPurchaseController
-                  .fetchCrabPurchasesByDateRange(); // Refresh data mỗi khi giao diện được load lại
+              crabPurchaseController.fetchCrabPurchasesByDateRange();
             },
           ),
         ],
@@ -129,212 +306,129 @@ class TraderManagementView extends StatelessWidget {
         if (traderController.traders.isEmpty) {
           return const Center(child: Text('Không có thương lái nào'));
         }
+
         return SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: StickyHeader(
-              header: Table(
-                border: TableBorder.all(color: Colors.black54, width: 1),
-                columnWidths: const {
-                  0: FlexColumnWidth(1),
-                  1: FlexColumnWidth(2.5),
-                  2: FlexColumnWidth(1.5),
-                  3: FlexColumnWidth(2),
-                  4: FlexColumnWidth(3),
-                },
-                children: [
-                  TableRow(
-                    decoration: BoxDecoration(color: Colors.grey[300]),
-                    children: const [
-                      TableCell(
-                        child: Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text('STT',
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                      TableCell(
-                        child: Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text('Tên lái',
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                      TableCell(
-                        child: Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text('SĐT',
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                      TableCell(
-                        child: Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text('Trạng thái',
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                      TableCell(
-                        child: Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text('Hành động',
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                    ],
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              buildHeaderBar(),
+              const SizedBox(height: 12),
+
+              // StickyHeader giống trang "Loại cua"
+              StickyHeader(
+                header: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    border: Border.all(color: Colors.black26, width: 1),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(8)),
                   ),
-                ],
+                  child: Table(
+                    // Tỉ lệ cột tương đương phong cách trang Loại cua
+                    columnWidths: const {
+                      0: FlexColumnWidth(1), // STT
+                      1: FlexColumnWidth(2.3), // Tên
+                      2: FlexColumnWidth(1.5), // SĐT
+                      3: FlexColumnWidth(1.5), // Trạng thái
+                      4: FlexColumnWidth(3), // Hành động
+                    },
+                    border: const TableBorder(
+                      horizontalInside:
+                          BorderSide(color: Colors.black26, width: 0.5),
+                      verticalInside:
+                          BorderSide(color: Colors.black26, width: 0.5),
+                      top: BorderSide(color: Colors.black26, width: 1),
+                      left: BorderSide(color: Colors.black26, width: 1),
+                      right: BorderSide(color: Colors.black26, width: 1),
+                    ),
+                    children: [buildTableHeaderRow()],
+                  ),
+                ),
+                content: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.black26, width: 1),
+                    borderRadius:
+                        const BorderRadius.vertical(bottom: Radius.circular(8)),
+                  ),
+                  child: Table(
+                    columnWidths: const {
+                      0: FlexColumnWidth(1), // STT
+                      1: FlexColumnWidth(2.3), // Tên
+                      2: FlexColumnWidth(1.5), // SĐT
+                      3: FlexColumnWidth(1.5), // Trạng thái
+                      4: FlexColumnWidth(3), // Hành động
+                    },
+                    border: const TableBorder(
+                      horizontalInside:
+                          BorderSide(color: Colors.black12, width: 0.5),
+                      verticalInside:
+                          BorderSide(color: Colors.black12, width: 0.5),
+                    ),
+                    children: traderController.traders
+                        .asMap()
+                        .entries
+                        .map((e) => buildTraderRow(e.key, e.value))
+                        .toList(),
+                  ),
+                ),
               ),
-              content: Table(
-                border: TableBorder.all(color: Colors.black54, width: 1),
-                columnWidths: const {
-                  0: FlexColumnWidth(1),
-                  1: FlexColumnWidth(2.5),
-                  2: FlexColumnWidth(1.5),
-                  3: FlexColumnWidth(2),
-                  4: FlexColumnWidth(3),
-                },
-                children: traderController.traders.asMap().entries.map((entry) {
-                  int index = entry.key;
-                  Trader trader = entry.value;
-                  bool hasSold = crabPurchaseController.hasSoldCrabs(trader.id);
-                  return TableRow(
-                    children: [
-                      TableCell(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Text((index + 1).toString(),
-                              style: const TextStyle(fontSize: 20)),
-                        ),
-                      ),
-                      TableCell(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Text(trader.name,
-                              style: const TextStyle(fontSize: 24)),
-                        ),
-                      ),
-                      TableCell(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Text(
-                            trader.phone,
-                            style: const TextStyle(fontSize: 18),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ),
-                      TableCell(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Text(
-                            hasSold ? 'Đã bán' : 'Chưa bán',
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: hasSold ? Colors.green : Colors.red),
-                          ),
-                        ),
-                      ),
-                      TableCell(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  side: const BorderSide(
-                                      color: AppColors.primaryColor, width: 2),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 6),
-                                ),
-                                child: const Text('Sửa',
-                                    style: TextStyle(
-                                        color: AppColors.primaryColor,
-                                        fontSize: 18)),
-                                onPressed: () {
-                                  showTraderForm(trader);
-                                },
-                              ),
-                              const SizedBox(width: 8),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  side: const BorderSide(
-                                      color: AppColors.errorColor, width: 2),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 6),
-                                ),
-                                child: const Text('Xóa',
-                                    style: TextStyle(
-                                        color: AppColors.errorColor,
-                                        fontSize: 18)),
-                                onPressed: () async {
-                                  bool confirmed =
-                                      await showConfirmationDialog();
-                                  if (confirmed) {
-                                    traderController.deleteTrader(trader.id);
-                                  }
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                }).toList(),
-              ),
-            ),
+
+              const SizedBox(height: 80), // chừa chỗ cho bottom bar
+            ],
           ),
         );
       }),
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.white,
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Container(
-              margin: const EdgeInsets.only(right: 10.0),
-              child: TextButton.icon(
-                onPressed: () => showTraderForm(),
-                icon: const Icon(Icons.add, color: Colors.green),
-                label: const Text(
-                  'Thêm lái',
-                  style: TextStyle(color: Colors.green, fontSize: 16),
-                ),
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 10.0,
-                    horizontal: 16.0,
+      // Bottom bar theo phong cách đã dùng
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border:
+                const Border(top: BorderSide(color: Colors.black12, width: 1)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 8,
+                offset: const Offset(0, -2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => showTraderForm(),
+                  icon: const Icon(Icons.add, color: Colors.green),
+                  label: const Text(
+                    'Thêm lái',
+                    style: TextStyle(
+                        color: Colors.green,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700),
                   ),
-                  shape: RoundedRectangleBorder(
-                    side: const BorderSide(color: Colors.grey, width: 3),
-                    borderRadius: BorderRadius.circular(8.0),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    side: const BorderSide(color: Colors.green, width: 2),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    backgroundColor: Colors.white,
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  // ===== Helpers =====
+  Widget _td(Widget child, {Alignment align = Alignment.centerLeft}) {
+    return Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: Align(alignment: align, child: child),
     );
   }
 
@@ -342,21 +436,17 @@ class TraderManagementView extends StatelessWidget {
     return Shimmer.fromColors(
       baseColor: Colors.grey[300]!,
       highlightColor: Colors.grey[100]!,
-      child: ListView.builder(
+      child: ListView.separated(
+        padding: const EdgeInsets.all(12),
         itemCount: 10,
+        separatorBuilder: (_, __) => const SizedBox(height: 8),
         itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-            child: Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-                side: const BorderSide(color: Colors.grey, width: 1),
-              ),
-              child: const ListTile(
-                title: Text(''),
-                subtitle: Text(''),
-              ),
+          return Container(
+            height: 64,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10.0),
+              border: Border.all(color: Colors.black12),
             ),
           );
         },

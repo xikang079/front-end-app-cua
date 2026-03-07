@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:shimmer/shimmer.dart';
-// import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 import '../../../apps/config/app_colors.dart';
 import '../../../apps/config/format_vnd.dart';
@@ -11,178 +9,185 @@ import 'daily_summary_detail_view.dart';
 
 class DailySummaryView extends StatelessWidget {
   final DailySummaryController controller = Get.put(DailySummaryController());
-
   DailySummaryView({super.key});
 
-  String formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}';
-  }
+  // ========= Responsive helpers (nhẹ) =========
+  double _sx(BuildContext c) =>
+      (MediaQuery.of(c).size.width / 430).clamp(1.0, 1.35);
+  double _f(BuildContext c, double s) => (s * _sx(c)).clamp(13, 20);
+  double _p(BuildContext c, double s) => (s * _sx(c)).clamp(4, 16);
+  double _icon(BuildContext c, double s) => (s * _sx(c)).clamp(16, 22);
+
+  String _d(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}-${d.month.toString().padLeft(2, '0')}-${d.year}';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 40,
-        title: const Text(
-          'Quản lí báo cáo cuối ngày',
-          style: TextStyle(color: Colors.white, fontSize: 18),
-        ),
-        backgroundColor: AppColors.primaryColor,
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.refresh,
-              color: Colors.white,
-              size: 30,
-            ),
-            onPressed: () {
-              controller.fetchDailySummariesByDepotAndMonth(
-                  controller.selectedMonth.value,
-                  controller.selectedYear.value);
-            },
-          ),
-        ],
-      ),
+      backgroundColor: AppColors.backgroundColor,
+      // appBar: AppBar(
+      //   toolbarHeight: _p(context, 44),
+      //   backgroundColor: AppColors.primaryColor,
+      //   title: Text(
+      //     'Quản lí báo cáo cuối ngày',
+      //     style: TextStyle(
+      //         color: Colors.white,
+      //         fontWeight: FontWeight.w800,
+      //         fontSize: _f(context, 16)),
+      //   ),
+      //   actions: [
+      //     IconButton(
+      //       tooltip: 'Tải lại',
+      //       onPressed: () => controller.fetchDailySummariesByDepotAndMonth(
+      //         controller.selectedMonth.value,
+      //         controller.selectedYear.value,
+      //       ),
+      //       icon: Icon(Icons.refresh,
+      //           color: Colors.white, size: _icon(context, 20)),
+      //     ),
+      //     SizedBox(width: _p(context, 4)),
+      //   ],
+      // ),
+
+      // ================= BODY =================
       body: Column(
         children: [
+          // ----- Bộ lọc Tháng/Năm -----
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(_p(context, 5)),
             child: Row(
               children: [
-                Expanded(
-                  child: Obx(() {
-                    return DropdownButton<int>(
-                      value: controller.selectedMonth.value,
-                      items: List.generate(12, (index) {
-                        return DropdownMenuItem(
-                          value: index + 1,
-                          child: Text('Tháng ${index + 1}'),
-                        );
-                      }),
-                      onChanged: (value) {
-                        if (value != null &&
-                            value != controller.selectedMonth.value) {
-                          controller.selectedMonth.value = value;
-                          controller.fetchDailySummariesByDepotAndMonth(
-                              value, controller.selectedYear.value);
-                        }
-                      },
-                    );
-                  }),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Obx(() {
-                    return DropdownButton<int>(
-                      value: controller.selectedYear.value,
-                      items: List.generate(10, (index) {
-                        int year = DateTime.now().year - index;
-                        return DropdownMenuItem(
-                          value: year,
-                          child: Text('Năm $year'),
-                        );
-                      }),
-                      onChanged: (value) {
-                        if (value != null &&
-                            value != controller.selectedYear.value) {
-                          controller.selectedYear.value = value;
-                          controller.fetchDailySummariesByDepotAndMonth(
-                              controller.selectedMonth.value, value);
-                        }
-                      },
-                    );
-                  }),
-                ),
+                Expanded(child: _monthPicker(context)),
+                SizedBox(width: _p(context, 10)),
+                Expanded(child: _yearPicker(context)),
               ],
             ),
           ),
+
+          // ----- Danh sách -----
           Expanded(
             child: Obx(() {
-              if (controller.isLoading.value) {
-                return _buildShimmerEffect();
-              }
+              if (controller.isLoading.value) return _shimmer(context);
+
               if (controller.errorMessage.isNotEmpty) {
-                return Center(child: Text(controller.errorMessage.value));
-              }
-              if (controller.dailySummaries.isEmpty) {
-                return const Center(
-                    child: Text('Không có báo cáo tổng hợp nào.'));
+                return Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(_p(context, 16)),
+                    child: Text(
+                      controller.errorMessage.value,
+                      style: TextStyle(
+                          fontSize: _f(context, 14),
+                          fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                );
               }
 
-              return MasonryGridView.count(
-                crossAxisCount: 1,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-                padding: const EdgeInsets.all(8.0),
+              if (controller.dailySummaries.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(_p(context, 16)),
+                    child: Text(
+                      'Không có báo cáo tổng hợp nào.',
+                      style: TextStyle(
+                          fontSize: _f(context, 14),
+                          fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                );
+              }
+
+              return ListView.separated(
+                padding: EdgeInsets.all(_p(context, 10)),
                 itemCount: controller.dailySummaries.length,
+                separatorBuilder: (_, __) => SizedBox(height: _p(context, 8)),
                 itemBuilder: (context, index) {
-                  final summary = controller.dailySummaries[index];
-                  return Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                      side: const BorderSide(color: Colors.grey, width: 1),
+                  final s = controller.dailySummaries[index];
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.black12),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2)),
+                      ],
                     ),
                     child: ListTile(
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: _p(context, 12),
+                        vertical: _p(context, 8),
+                      ),
                       title: Text(
-                        'Ngày: ${formatDate(summary.createdAt)}',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                        'Ngày: ${_d(s.createdAt)}',
+                        style: TextStyle(
+                            fontSize: _f(context, 16),
+                            fontWeight: FontWeight.w800),
+                      ),
+                      subtitle: Padding(
+                        padding: EdgeInsets.only(top: _p(context, 2)),
+                        child: Text(
+                          'Tổng tiền mua: ${formatCurrency(s.totalAmount)}',
+                          style: TextStyle(
+                              fontSize: _f(context, 14),
+                              fontWeight: FontWeight.w700),
                         ),
                       ),
-                      subtitle: Text(
-                        'Tổng tiền mua: ${formatCurrency(summary.totalAmount)}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                        ),
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
+                      trailing: Wrap(
+                        spacing: _p(context, 8),
                         children: [
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
+                          OutlinedButton(
+                            style: OutlinedButton.styleFrom(
                               side: const BorderSide(
-                                  color: AppColors.errorColor, width: 2),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                  color: AppColors.primaryColor, width: 1.4),
+                              padding: EdgeInsets.symmetric(
+                                vertical: _p(context, 6),
+                                horizontal: _p(context, 8),
                               ),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 2, vertical: 6),
-                            ),
-                            child: const Text('Xóa',
-                                style: TextStyle(
-                                    color: AppColors.errorColor, fontSize: 16)),
-                            onPressed: () async {
-                              bool confirmed =
-                                  await _showConfirmationDialog(context);
-                              if (confirmed) {
-                                await controller.deleteDailySummary(summary.id);
-                              }
-                            },
-                          ),
-                          const SizedBox(width: 8),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
                               backgroundColor: Colors.white,
-                              side: const BorderSide(
-                                  color: AppColors.primaryColor, width: 2),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 4, vertical: 6),
                             ),
-                            child: const Text('Truy cập',
-                                style: TextStyle(
-                                    color: AppColors.primaryColor,
-                                    fontSize: 16)),
                             onPressed: () {
-                              controller.dailySummary.value = summary;
-                              Get.to(() => DailySummaryDetailView(
-                                  dailySummary: summary));
+                              controller.dailySummary.value = s;
+                              Get.to(() =>
+                                  DailySummaryDetailView(dailySummary: s));
                             },
+                            child: Text(
+                              'Truy cập',
+                              style: TextStyle(
+                                color: AppColors.primaryColor,
+                                fontSize: _f(context, 13),
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                          OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(
+                                  color: AppColors.errorColor, width: 1.4),
+                              padding: EdgeInsets.symmetric(
+                                vertical: _p(context, 6),
+                                horizontal: _p(context, 8),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                              backgroundColor: Colors.white,
+                            ),
+                            onPressed: () async {
+                              final ok = await _confirmDelete(context);
+                              if (ok) await controller.deleteDailySummary(s.id);
+                            },
+                            child: Text(
+                              'Xóa',
+                              style: TextStyle(
+                                color: AppColors.errorColor,
+                                fontSize: _f(context, 13),
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -197,59 +202,113 @@ class DailySummaryView extends StatelessWidget {
     );
   }
 
-  Widget _buildShimmerEffect() {
+  // ---------- Widgets con ----------
+
+  Widget _monthPicker(BuildContext context) {
+    return Obx(() {
+      return DropdownButtonFormField<int>(
+        value: controller.selectedMonth.value,
+        decoration: InputDecoration(
+          labelText: 'Tháng',
+          labelStyle:
+              TextStyle(fontWeight: FontWeight.w700, fontSize: _f(context, 16)),
+          contentPadding: EdgeInsets.symmetric(
+              horizontal: _p(context, 12), vertical: _p(context, 10)),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        items: List.generate(12, (i) {
+          final m = i + 1;
+          return DropdownMenuItem(
+              value: m,
+              child: Text('Tháng $m',
+                  style: TextStyle(fontSize: _f(context, 14))));
+        }),
+        onChanged: (v) {
+          if (v != null && v != controller.selectedMonth.value) {
+            controller.selectedMonth.value = v;
+            controller.fetchDailySummariesByDepotAndMonth(
+                v, controller.selectedYear.value);
+          }
+        },
+      );
+    });
+  }
+
+  Widget _yearPicker(BuildContext context) {
+    return Obx(() {
+      final currentYear = DateTime.now().year;
+      return DropdownButtonFormField<int>(
+        value: controller.selectedYear.value,
+        decoration: InputDecoration(
+          labelText: 'Năm',
+          labelStyle:
+              TextStyle(fontWeight: FontWeight.w700, fontSize: _f(context, 16)),
+          contentPadding: EdgeInsets.symmetric(
+              horizontal: _p(context, 12), vertical: _p(context, 10)),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        items: List.generate(10, (i) {
+          final y = currentYear - i;
+          return DropdownMenuItem(
+              value: y,
+              child:
+                  Text('Năm $y', style: TextStyle(fontSize: _f(context, 14))));
+        }),
+        onChanged: (v) {
+          if (v != null && v != controller.selectedYear.value) {
+            controller.selectedYear.value = v;
+            controller.fetchDailySummariesByDepotAndMonth(
+                controller.selectedMonth.value, v);
+          }
+        },
+      );
+    });
+  }
+
+  Widget _shimmer(BuildContext context) {
     return Shimmer.fromColors(
       baseColor: Colors.grey[300]!,
       highlightColor: Colors.grey[100]!,
-      child: ListView.builder(
-        itemCount: 10,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-            child: Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-                side: const BorderSide(color: Colors.grey, width: 1),
-              ),
-              child: const ListTile(
-                title: Text(''),
-                subtitle: Text(''),
-              ),
-            ),
-          );
-        },
+      child: ListView.separated(
+        padding: EdgeInsets.all(_p(context, 10)),
+        itemCount: 6,
+        separatorBuilder: (_, __) => SizedBox(height: _p(context, 8)),
+        itemBuilder: (_, __) => Container(
+          height: _p(context, 64),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: Colors.black12),
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
       ),
     );
   }
 
-  Future<bool> _showConfirmationDialog(BuildContext context) async {
-    return await showDialog(
+  Future<bool> _confirmDelete(BuildContext context) async {
+    return await showDialog<bool>(
           context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const Text('Xác nhận', style: TextStyle(fontSize: 20)),
-              content: const Text(
-                  'Bạn có chắc chắn muốn xóa báo cáo này không?',
-                  style: TextStyle(fontSize: 18)),
-              actions: [
-                TextButton(
-                  child: const Text('Hủy', style: TextStyle(fontSize: 16)),
-                  onPressed: () {
-                    Navigator.of(context).pop(false);
-                  },
-                ),
-                TextButton(
-                  child: const Text('Xóa',
-                      style:
-                          TextStyle(color: AppColors.errorColor, fontSize: 16)),
-                  onPressed: () {
-                    Navigator.of(context).pop(true);
-                  },
-                ),
-              ],
-            );
-          },
+          builder: (_) => AlertDialog(
+            title: Text('Xác nhận',
+                style: TextStyle(
+                    fontSize: _f(context, 16), fontWeight: FontWeight.w800)),
+            content: Text('Bạn có chắc chắn muốn xóa báo cáo này không?',
+                style: TextStyle(fontSize: _f(context, 14))),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text('Hủy', style: TextStyle(fontSize: _f(context, 13))),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text('Xóa',
+                    style: TextStyle(
+                        color: AppColors.errorColor,
+                        fontSize: _f(context, 13),
+                        fontWeight: FontWeight.w800)),
+              ),
+            ],
+          ),
         ) ??
         false;
   }

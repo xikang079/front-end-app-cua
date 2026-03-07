@@ -1,11 +1,10 @@
 import 'package:get/get.dart';
-import 'package:project_crab_front_end/pages/user/connectPrinterView/connect_printer_view.dart';
-
 import '../bindings/auth_binding.dart';
 import '../bindings/crab_purchase_binding.dart';
 import '../bindings/crabtype_binding.dart';
 import '../bindings/daily_summary_binding.dart';
 import '../bindings/trader_binding.dart';
+import '../pages/user/connectPrinterView/connect_printer_view.dart';
 import '../pages/user/crabPurchaseByDateView/crab_purchase_by_date_view.dart';
 import '../pages/user/dailySumView/daily_summary_detail_view.dart';
 import '../pages/user/dailySumView/daily_summary_view.dart';
@@ -70,7 +69,7 @@ class AppRoutes {
     ),
     GetPage(
       name: '/crabPurchasesByDate',
-      page: () => const CrabPurchasesByDateView(), // Route mới
+      page: () => const CrabPurchasesByDateView(),
     ),
   ];
 }

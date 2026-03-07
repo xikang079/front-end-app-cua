@@ -98,41 +98,47 @@ class _HomeViewState extends State<HomeView> {
       body: _pages[_page],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _page,
-        onTap: (index) {
-          setState(() {
-            _page = index;
-          });
-        },
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        elevation: 6, // đổ bóng nhẹ
+        selectedItemColor: AppColors.primaryColor,
+        unselectedItemColor: Colors.black54,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        selectedLabelStyle: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w800,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.attach_money),
+            icon: Icon(Icons.attach_money_rounded),
             label: 'Loại cua',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.people),
+            icon: Icon(Icons.people_alt_rounded),
             label: 'Thương lái',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.add),
+            icon: Icon(Icons.add_circle_rounded, size: 28),
             label: 'Tạo hóa đơn',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.pie_chart),
+            icon: Icon(Icons.pie_chart_rounded),
             label: 'Tổng hợp',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
+            icon: Icon(Icons.settings_rounded),
             label: 'Cài đặt',
           ),
         ],
-        selectedItemColor: AppColors.primaryColor,
-        unselectedItemColor: Colors.grey,
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        selectedLabelStyle:
-            const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-        unselectedLabelStyle: const TextStyle(fontSize: 12),
-        type: BottomNavigationBarType.fixed,
+        onTap: (index) {
+          if (_page == index) return;
+          setState(() => _page = index);
+        },
       ),
     );
   }
